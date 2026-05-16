@@ -1,0 +1,13 @@
+{
+  "name": "deep-research",
+  "owner": {
+    "name": "Mircea"
+  },
+  "plugins": [
+    {
+      "name": "deep-research",
+      "source": "./plugins/deep-research",
+      "description": "Multi-agent iterative research. Spawns parallel supportive/adversarial research workers and a judge each round, accumulates a citation catalog and a deliverable document, and stops when the topic is adequately covered."
+    }
+  ]
+}

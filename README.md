@@ -1,50 +1,41 @@
 # deep-research
 
-A Claude Code plugin: multi-agent iterative research that runs entirely through
-Claude Code's native Agent tool. No Python, no API keys.
-
-> **Status: 0.9.0 — freshly built, validating.** Functional and in active
-> testing. The version will move to 1.0.0 once it has completed full runs
-> end-to-end.
+A Claude Code plugin marketplace shipping one plugin: **deep-research** — a
+multi-agent iterative research system that runs entirely through Claude Code's
+native Agent tool. No Python, no API keys.
 
 You give it a research goal. It runs an autonomous loop — each round spawns
 parallel research workers (some building the case for a direction, some
 against it), then a judge scores their work, verifies every quantitative
 claim, folds the findings into accumulating documents, and decides what to
-investigate next. The loop stops when the topic is adequately covered.
+investigate next. The deliverable is a readable, sourced document for a stated
+audience.
 
-The deliverable is a readable, sourced document written for a stated audience.
-
-## What's in the pack
-
-```
-deep-research/
-├── .claude-plugin/plugin.json
-├── skills/
-│   ├── deep-research/SKILL.md          the orchestrating skill
-│   └── deep-research-review/SKILL.md   debrief a finished run
-└── agents/
-    ├── research-worker.md              research subagent
-    └── research-judge.md               scoring + synthesis subagent
-```
+> **Status: 0.9.0 — freshly built, validating.** Functional and in active
+> testing. The version moves to 1.0.0 once it has completed full runs
+> end-to-end.
 
 ## Install
 
-From a local copy:
+In Claude Code:
 
 ```
-claude --plugin-dir /path/to/deep-research
+/plugin marketplace add mirceastrugaru/deep-research
+/plugin install deep-research@deep-research
 ```
 
-Or, if pushed to git:
+Then restart Claude Code. `deep-research@deep-research` is
+`plugin-name@marketplace-name` — both are `deep-research`, so it reads
+doubled; that is correct.
+
+## Update
 
 ```
-/plugin install <git-url>
+/plugin marketplace update deep-research
+/plugin update deep-research
 ```
 
-Installing the plugin makes everything available together: the two skills
-(namespaced `/deep-research:deep-research` and
-`/deep-research:deep-research-review`) and the two custom subagents.
+Then restart Claude Code.
 
 ## Use
 
@@ -57,23 +48,25 @@ the goal, audience, working directory, round cap, and worker count, then runs
 the loop autonomously. When it finishes, read `synthesis.md` and `brief.md` in
 the working directory.
 
-To debrief a run:
+Debrief a finished run:
 
 ```
 /deep-research:deep-research-review
 ```
 
-## How it works
+## Repository layout
 
-- **Workers** investigate one direction each, with a supportive or adversarial
-  stance. They do real web research, follow leads to primary sources, and
-  write a structured findings file (observations separated from inferences,
-  every observation sourced).
-- **The judge** scores each findings file against a hard/soft-gate rubric,
-  re-checks every quantitative claim against its source, detects
-  context-stripping, then rewrites the deliverable documents and curates the
-  roadmap of what to investigate next.
-- **State** is plain Markdown files in the working directory. The run is
-  resumable — re-invoking the skill picks up where it left off, never restarts.
+```
+.claude-plugin/marketplace.json     marketplace manifest
+plugins/deep-research/              the plugin
+├── .claude-plugin/plugin.json
+├── skills/
+│   ├── deep-research/SKILL.md          orchestrating skill
+│   └── deep-research-review/SKILL.md   debrief skill
+└── agents/
+    ├── research-worker.md              research subagent
+    └── research-judge.md               scoring + synthesis subagent
+```
 
-Scope is qualitative research.
+Full plugin documentation is in `plugins/deep-research/README.md`. Scope is
+qualitative research.
