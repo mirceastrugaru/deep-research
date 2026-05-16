@@ -18,11 +18,11 @@ You run a multi-agent research loop from THIS main session. You do not do the re
 
 ## Step 0 — Resume check
 
-Before intake, check whether a run is already in progress. If the working directory is known or the user names one, read `state.md` and scan it:
+Before intake, check whether a run is already in progress. If the working directory is known or the user names one, read `state.md`. `round: N` means round N has STARTED (not that it finished) — `state.md` is set to the round number when that round begins, so the round number and the `findings/round-N/` directory never drift apart. Let N be `state.md`'s `round` and scan:
 
-- `findings/round-N/` has fewer NON-EMPTY `agent-K.md` findings files than the worker count in `state.md` → that round's research is incomplete. Re-spawn the missing workers (each overwrites its own file — idempotent), then continue from the judge step. Count only non-empty `agent-K.md` files; ignore `agent-K.scratch.md` working files and treat an empty or stub `agent-K.md` as missing — re-spawn that worker.
+- `findings/round-N/` has fewer NON-EMPTY `agent-K.md` findings files than the worker count in `state.md` → round N's research is incomplete. Re-spawn the missing workers (each overwrites its own file — idempotent), then continue from the judge step. Count only non-empty `agent-K.md` files; ignore `agent-K.scratch.md` working files and treat an empty or stub `agent-K.md` as missing — re-spawn that worker.
 - `findings/round-N/` is complete but `log.md` has no judge entry for round N → re-spawn the judge for round N.
-- Otherwise → start round N+1.
+- `findings/round-N/` is complete and round N is judged → round N is finished; start round N+1.
 
 If no `state.md` exists anywhere relevant, this is a fresh run — go to intake. Re-invoking the skill NEVER restarts from scratch.
 
@@ -90,21 +90,22 @@ Direction IDs are `d-` + 6 hex chars, stable for the life of the run. Seed direc
 
 ## Step 3 — The round loop
 
-Repeat until convergence (Step 4) or the round cap:
+Each iteration is one round. Before starting a round, check the two stop conditions in §4 Convergence — if either holds, do not start another round; go to Step 5 (final brief). Otherwise run the round:
 
-1. **Read** `roadmap.md` and `ledger.md`.
-2. **Assign directions.** Coverage-driven:
+1. **Set the round number.** This round's number is `state.md`'s `round` + 1 (it is 1 for the first round after init, which starts at `round: 0`). If that number would exceed `round_cap`, do not start the round — stop and go to Step 5. Otherwise write the number to `round` in `state.md` NOW, before spawning anything. Every `findings/round-<N>/...` path this round uses this number. Setting it up front is what keeps `state.md` and the `findings/` directories in sync.
+2. **Read** `roadmap.md` and `ledger.md`.
+3. **Assign directions.** Coverage-driven:
    - A direction not yet investigated gets priority.
    - A direction is **covered** once BOTH a supportive and an adversarial worker have investigated it AND at least one produced a passing-score (score > 0) findings file.
    - A covered direction that spawned no new sub-directions is **saturated** — deprioritize it.
    - Assign this round's workers to the highest-priority under-covered directions. Split stances evenly: half supportive, half adversarial. Multiple workers may share a direction with opposite stances.
-3. **Spawn all research workers in parallel** — multiple Agent calls in a SINGLE message, `subagent_type: research-worker`, foreground. Use the spawn-prompt template below.
-4. **Handle worker failure.** If a worker returns nothing, or its findings file is missing/empty, proceed with the remaining workers. Write a failure line to `log.md`. Never block the round on one failed worker.
-5. **Write this round's `log.md` line** (round number, workers spawned, any failures) BEFORE spawning the judge — so you and the judge never write `log.md` concurrently.
-6. **Spawn ONE judge**, `subagent_type: research-judge`, foreground, with absolute paths to: this round's findings files, `evidence.md`, `synthesis.md`, `roadmap.md`, `ledger.md`, `log.md`, plus the goal and audience.
-7. **Handle judge failure.** Findings files survive on disk. Retry the judge once. If it fails twice, STOP and report — do not continue with no synthesis.
-8. **Update `state.md`** — increment `round`; update `rounds_without_new_directions` (reset to 0 if the judge added any direction, else +1).
-9. **Check convergence** (Step 4).
+4. **Spawn all research workers in parallel** — multiple Agent calls in a SINGLE message, `subagent_type: research-worker`, foreground. Use the spawn-prompt template below.
+5. **Handle worker failure.** If a worker returns nothing, or its findings file is missing/empty, proceed with the remaining workers. Write a failure line to `log.md`. Never block the round on one failed worker.
+6. **Write this round's `log.md` line** (round number, workers spawned, any failures) BEFORE spawning the judge — so you and the judge never write `log.md` concurrently.
+7. **Spawn ONE judge**, `subagent_type: research-judge`, foreground, with absolute paths to: this round's findings files, `evidence.md`, `synthesis.md`, `roadmap.md`, `ledger.md`, `log.md`, plus the goal and audience.
+8. **Handle judge failure.** Findings files survive on disk. Retry the judge once. If it fails twice, STOP and report — do not continue with no synthesis.
+9. **Update `state.md`** — set `rounds_without_new_directions` (reset to 0 if the judge added any direction, else +1). Do NOT touch `round` here — it was already set in step 1 of this round.
+10. **Check convergence** (Step 4).
 
 ### Worker spawn-prompt template
 
