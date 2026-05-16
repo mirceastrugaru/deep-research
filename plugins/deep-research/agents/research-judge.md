@@ -73,6 +73,7 @@ Decide from the goal whether the deliverable is genuinely two documents (evidenc
 ## Phase C — Curate the roadmap
 
 - For each existing direction: keep, deprioritize, or kill. Kill directions investigated and found unproductive. Deprioritize partially-covered lower-value ones.
+- **A stance that scored 0 is not covered — it is failed.** If a worker investigated a direction with some stance and you scored that file 0 (hard-gate fail), its output was discarded — that stance has NOT been researched. In the direction's `coverage:` line, mark that stance `FAILED_NEEDS_RERUN`, not `no` and not covered. Never call such a direction "partially covered" and never deprioritize it for that reason: a discarded hard-gate failure on a direction already judged worth investigating is a known hole, and re-running it ranks ABOVE merely-unstarted directions. A direction with a `FAILED_NEEDS_RERUN` stance is never killed and never saturated until that stance has been re-run and passed.
 - For each proposed new direction, apply three checks: (1) specific enough to assign? (2) not already covered? (3) would confirming or disconfirming it change the analysis? Add only those that pass. Rewrite a promising-but-vague proposal to be specific before adding it.
 - Preserve stable direction IDs (`d-` + 6 hex chars). Generate new IDs in the same format. Track each new direction's parent.
 - Reorder by expected value. Cap at ~15 active directions.

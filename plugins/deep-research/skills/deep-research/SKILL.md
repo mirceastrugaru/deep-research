@@ -76,6 +76,8 @@ note: <one line — why this matters / current state>
 ...
 ```
 
+Each stance in the `coverage:` line is `no` (not yet investigated), `yes` (investigated and the file passed), or `FAILED_NEEDS_RERUN` (a worker investigated it but the judge scored that file 0, so the output was discarded — the stance still needs a clean run). `passing=` is `yes` once at least one stance produced a score > 0 file.
+
 Direction IDs are `d-` + 6 hex chars, stable for the life of the run. Seed directions get fresh IDs at init.
 
 ### ledger.md format
@@ -94,11 +96,13 @@ Each iteration is one round. Before starting a round, check the two stop conditi
 
 1. **Set the round number.** This round's number is `state.md`'s `round` + 1 (it is 1 for the first round after init, which starts at `round: 0`). If that number would exceed `round_cap`, do not start the round — stop and go to Step 5. Otherwise write the number to `round` in `state.md` NOW, before spawning anything. Every `findings/round-<N>/...` path this round uses this number. Setting it up front is what keeps `state.md` and the `findings/` directories in sync.
 2. **Read** `roadmap.md` and `ledger.md`.
-3. **Assign directions.** Coverage-driven:
-   - A direction not yet investigated gets priority.
-   - A direction is **covered** once BOTH a supportive and an adversarial worker have investigated it AND at least one produced a passing-score (score > 0) findings file.
-   - A covered direction that spawned no new sub-directions is **saturated** — deprioritize it.
-   - Assign this round's workers to the highest-priority under-covered directions. Split stances evenly: half supportive, half adversarial. Multiple workers may share a direction with opposite stances.
+3. **Assign directions.** Coverage-driven. A stance is settled only if its `coverage:` value is `yes`; `no` means unstarted and `FAILED_NEEDS_RERUN` means a discarded hard-gate failure. Assign in this priority order, highest first:
+   1. **`FAILED_NEEDS_RERUN` stances** — a worker investigated this stance but the judge discarded the file (score 0). It is a known hole in a direction already judged worth investigating. Re-run it before any unstarted work.
+   2. **Unstarted stances** (`no`) on directions not yet investigated.
+   3. **Single-stance directions** — one stance settled, the other unstarted.
+   4. **Saturated directions** (covered, no new sub-directions) — lowest.
+   - A direction is **covered** once BOTH stances are `yes`. A `FAILED_NEEDS_RERUN` stance does NOT count toward covered — the direction stays open until that stance is re-run and passes.
+   - Assign this round's workers to the highest-priority items. Split stances evenly: half supportive, half adversarial. Multiple workers may share a direction with opposite stances. When the round's worker count exceeds the priority-1 and priority-2 items, fill remaining slots down the order.
 4. **Spawn all research workers in parallel** — multiple Agent calls in a SINGLE message, `subagent_type: research-worker`, foreground. Use the spawn-prompt template below.
 5. **Handle worker failure.** If a worker returns nothing, or its findings file is missing/empty, proceed with the remaining workers. Write a failure line to `log.md`. Never block the round on one failed worker.
 6. **Write this round's `log.md` line** (round number, workers spawned, any failures) BEFORE spawning the judge — so you and the judge never write `log.md` concurrently.
@@ -130,7 +134,7 @@ line: the file you wrote and an observation count.
 ## Step 4 — Convergence
 
 Stop when BOTH:
-- every direction in `roadmap.md` is covered by both stances with at least one passing-score findings file, AND
+- every direction in `roadmap.md` is covered — both stances `yes` in its `coverage:` line. A `FAILED_NEEDS_RERUN` stance is NOT covered; the run cannot converge while any direction has one. AND
 - no new directions were proposed for 2 consecutive rounds (`rounds_without_new_directions >= 2`).
 
 Or stop at the round cap. Whichever comes first. Set `converged: true` in `state.md`.
