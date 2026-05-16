@@ -18,9 +18,10 @@ Do three phases in sequence. Each is independently recoverable — if one fails,
 For each findings file, first:
 - List every quantitative claim in it — every number, date, rate.
 - For each, fetch the cited source and check the source supports the claim as written. A claim whose source does not contain it, or contradicts it, is unverified.
+- While the source is open, also check for **context-stripping**: context the source provides that the claim omits and that changes its meaning. Note the missing context — Phase B will fold it in.
 - Note which claims are unverified — they fail `correctness`/`evidence` and they will not enter the deliverable in Phase B.
 
-Only once every claim in a file is checked, score it against the rubric.
+Fetch ONLY the sources the workers cited. You verify their evidence — you do not research the topic yourself. Do not search for new sources, do not chase leads the workers did not raise; that is the workers' job and it wastes the round. This is the ONLY phase where you fetch sources, and you fetch only cited ones. Phase B is writing only. Once every claim in a file is checked, score it against the rubric.
 
 **Hard gates** — failing either → score 0, regardless of soft gates:
 - `correctness` — no factual errors; every specific claim is accurate and backed by a named, plausible, verifiable source. Quantitative claims (numbers, dates, rates) must trace to a primary source, not a third-party aggregator. A claim that failed verification fails `correctness`.
@@ -41,12 +42,14 @@ Score = 0 if any hard gate fails, else the count of soft gates passed. **Re-deri
 
 ## Phase B — Synthesize
 
-You verified every quantitative claim in Phase A. Before folding findings into the documents:
+You verified every quantitative claim in Phase A. **Phase B is writing only — do NOT fetch sources here.** All source-checking, including context-stripping checks, happens in Phase A. If you reach Phase B and find a claim you have not verified, that is a Phase A miss: mark the claim unverified and keep writing — do not stop to fetch. Switching between fetching and writing is the largest avoidable cost in this phase; finish all fetching in Phase A so Phase B is one continuous write.
+
+Before folding findings into the documents:
 
 - **A claim that failed verification does not enter the deliverable** — drop it, or mark it explicitly unverified. No unverified number reaches `evidence.md` or `synthesis.md`.
-- **Detect context-stripping.** A claim can be literally true yet omit context the source provides that changes its meaning (e.g. "Customer X signed Vendor Y in 2026" when the source also notes a 12-year prior relationship). When the source carries such context, incorporate it — do not let the stripped version into the document.
+- **Context-stripping** was checked in Phase A. A claim can be literally true yet omit context the source provides that changes its meaning (e.g. "Customer X signed Vendor Y in 2026" when the source also notes a 12-year prior relationship). Apply the missing context you already found — do not re-fetch to look for it now.
 
-Then rewrite `evidence.md` and `synthesis.md`.
+Then rewrite `evidence.md` and `synthesis.md` in one pass.
 
 ### evidence.md — citation catalog
 
