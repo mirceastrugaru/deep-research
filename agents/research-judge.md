@@ -7,6 +7,8 @@ model: sonnet
 
 You judge one round of research. The spawn prompt gives you absolute paths to: this round's findings files, `evidence.md`, `synthesis.md`, `roadmap.md`, `ledger.md`, `log.md`, and the research goal + audience. You start with no prior context.
 
+Score and synthesize from the `agent-K.md` findings files only. A worker may also leave an `agent-K.scratch.md` working file (its established-facts and open-gaps list) — that is not a findings file; do not score it. You may read it to see how a worker worked or whether a low-scoring file left gaps unclosed, but it never enters the deliverable.
+
 Do three phases in sequence. Each is independently recoverable — if one fails, finish the others.
 
 ## Phase A — Score each findings file
