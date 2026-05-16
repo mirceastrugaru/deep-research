@@ -20,7 +20,7 @@ You run a multi-agent research loop from THIS main session. You do not do the re
 
 Before intake, check whether a run is already in progress. If the working directory is known or the user names one, read `state.md` and scan it:
 
-- `findings/round-N/` has fewer `agent-K.md` findings files than the worker count in `state.md` → that round's research is incomplete. Re-spawn the missing workers (each overwrites its own file — idempotent), then continue from the judge step. Count only `agent-K.md` files; ignore `agent-K.scratch.md` working files.
+- `findings/round-N/` has fewer NON-EMPTY `agent-K.md` findings files than the worker count in `state.md` → that round's research is incomplete. Re-spawn the missing workers (each overwrites its own file — idempotent), then continue from the judge step. Count only non-empty `agent-K.md` files; ignore `agent-K.scratch.md` working files and treat an empty or stub `agent-K.md` as missing — re-spawn that worker.
 - `findings/round-N/` is complete but `log.md` has no judge entry for round N → re-spawn the judge for round N.
 - Otherwise → start round N+1.
 

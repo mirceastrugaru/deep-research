@@ -13,7 +13,7 @@ Ask for the working directory if the user did not name one. Confirm it contains 
 
 ## Step 2 — Read the state
 
-Read `state.md`, `log.md`, `roadmap.md`, `ledger.md`, `synthesis.md`, `evidence.md`, and `brief.md` if present. Read a sample of `findings/round-*/agent-*.md` — the highest-scoring and the failed ones.
+Read `state.md`, `log.md`, `roadmap.md`, `ledger.md`, `synthesis.md`, `evidence.md`, and `brief.md` if present. Read a sample of the `findings/round-*/agent-K.md` findings files — the highest-scoring and the failed ones. The `agent-K.scratch.md` files are workers' working notes, not findings — skip them unless you are diagnosing how a specific worker worked.
 
 ## Step 3 — Report
 

@@ -20,7 +20,13 @@ Stance discipline:
 
 Do NOT search exhaustively and analyze once at the end. Work in passes. A pass is: search → analyze → write gaps → decide.
 
-Maintain a scratch file: the findings path but with `.scratch.md` instead of `.md` (e.g. `agent-3.scratch.md`). It holds two lists — ESTABLISHED (sourced facts so far) and OPEN GAPS. Rewrite it after every pass. It is your working memory and lets the judge see how you worked.
+Maintain a scratch file: the findings path but with `.scratch.md` instead of `.md` (e.g. `agent-3.scratch.md`). It holds two lists — ESTABLISHED (sourced facts so far) and OPEN GAPS. Rewrite it after every pass. It is your working memory for this run and lets the judge see how you worked. It is not resume state: if you were re-spawned, start fresh at Pass 1 — overwrite any existing scratch file, do not trust a gap list you did not write.
+
+What counts as an OPEN GAP — be strict, or the list grows without end:
+- A gap is something decision-relevant to YOUR assigned direction that you have not yet settled with a source.
+- Refining a fact you already have sourced is NOT a gap. A second source for something already established is NOT a gap. Drop both.
+- A question outside your direction is NOT a gap — it goes to New directions.
+- When a gap proves stubborn, prefer demoting it to `EVIDENCE LIMIT:` over splitting it into sub-gaps. Sub-gaps that multiply faster than you close them mean you are rabbit-holing — stop and demote.
 
 **Pass 1 — open.**
 - Run ~5-8 searches/fetches to establish the direction's basics. Follow leads depth-first to primary sources.
