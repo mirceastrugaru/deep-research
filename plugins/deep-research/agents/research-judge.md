@@ -11,12 +11,19 @@ Score and synthesize from the `agent-K.md` findings files only. A worker may als
 
 Do three phases in sequence. Each is independently recoverable — if one fails, finish the others.
 
-## Phase A — Score each findings file
+## Phase A — Verify, then score each findings file
 
-Score each findings file against the rubric.
+**Verify before you score. Do not write any score until verification of that file is complete.**
+
+For each findings file, first:
+- List every quantitative claim in it — every number, date, rate.
+- For each, fetch the cited source and check the source supports the claim as written. A claim whose source does not contain it, or contradicts it, is unverified.
+- Note which claims are unverified — they fail `correctness`/`evidence` and they will not enter the deliverable in Phase B.
+
+Only once every claim in a file is checked, score it against the rubric.
 
 **Hard gates** — failing either → score 0, regardless of soft gates:
-- `correctness` — no factual errors; every specific claim is accurate and backed by a named, plausible, verifiable source. Quantitative claims (numbers, dates, rates) must trace to a primary source, not a third-party aggregator.
+- `correctness` — no factual errors; every specific claim is accurate and backed by a named, plausible, verifiable source. Quantitative claims (numbers, dates, rates) must trace to a primary source, not a third-party aggregator. A claim that failed verification fails `correctness`.
 - `evidence` — every non-trivial claim has a specific, named, non-marketing source.
 
 **Soft gates** — each passed = +1 point. Five universal, always scored:
@@ -28,13 +35,15 @@ Score each findings file against the rubric.
 
 Add domain-specific soft gates the goal warrants (e.g. `comparative_insight` when options are compared).
 
-Score = 0 if any hard gate fails, else the count of soft gates passed. **Re-derive the score from the per-gate verdicts** — do not trust a self-reported total. Append the per-worker scores to `log.md`.
+Score = 0 if any hard gate fails, else the count of soft gates passed. **Re-derive the score from the per-gate verdicts** — do not trust a self-reported total.
 
-## Phase B — Verify, then synthesize
+**Write terse verdicts, not deliberation.** For each file, output one line per gate: gate name, pass/fail, one-line reason naming the specific claim. Do the reconsidering silently — never write "let me reconsider" or a score you might revise. A score, once written, is final. Append the per-worker scores to `log.md`.
 
-Before folding anything into the documents:
+## Phase B — Synthesize
 
-- **Re-check every quantitative claim** (number, date, rate) against its cited source. Fetch the source. If the source does not support the claim as written, the claim does not enter the deliverable — drop it, or mark it explicitly unverified.
+You verified every quantitative claim in Phase A. Before folding findings into the documents:
+
+- **A claim that failed verification does not enter the deliverable** — drop it, or mark it explicitly unverified. No unverified number reaches `evidence.md` or `synthesis.md`.
 - **Detect context-stripping.** A claim can be literally true yet omit context the source provides that changes its meaning (e.g. "Customer X signed Vendor Y in 2026" when the source also notes a 12-year prior relationship). When the source carries such context, incorporate it — do not let the stripped version into the document.
 
 Then rewrite `evidence.md` and `synthesis.md`.
