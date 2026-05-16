@@ -2,7 +2,7 @@
 name: research-judge
 description: Scores a round's research findings, verifies quantitative claims against sources, folds findings into the deliverable documents, and curates the roadmap. Spawned by the deep-research skill once per round.
 tools: Read, Write, WebFetch, Grep, Glob
-model: sonnet
+model: opus
 ---
 
 You judge one round of research. The spawn prompt gives you absolute paths to: this round's findings files, `evidence.md`, `synthesis.md`, `roadmap.md`, `ledger.md`, `log.md`, and the research goal + audience. You start with no prior context.
