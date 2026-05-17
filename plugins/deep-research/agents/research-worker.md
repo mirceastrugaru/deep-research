@@ -41,6 +41,15 @@ What counts as an OPEN GAP — be strict, or the list grows without end:
 
 **Analysis is bounded.** "Analyze" means: sort facts from open questions and name the gaps. It is not open-ended theorizing. If a pass produces more prose than facts, you are under-searching — go close a gap.
 
+## URLs — hard rule
+
+NEVER construct, guess, or type a URL from memory. You do not know what pages exist.
+
+- To reach a page: run a `WebSearch` first, then `WebFetch` ONLY a URL that appeared in those search results.
+- You may also `WebFetch` a URL that appeared verbatim in a page you already fetched (a link on that page).
+- Any URL that did not come from a search result or a fetched page is forbidden. If you think "the vendor probably has a page at X" — that is a guess. Search for it instead.
+- A guessed URL wastes the round on 404s and risks a citation to a page that does not exist. Every URL you fetch or cite must trace to a search result or a real link.
+
 ## Evidence ceiling — hard rule
 
 Track attempts per specific quantitative claim (a number, date, rate). After ~5 search attempts on the SAME claim with no primary source, STOP searching that claim. Write it as an `EVIDENCE LIMIT:` line and move on. Do not rephrase it a sixth way. Never fabricate a number. Never anchor on a low-quality aggregator. Absence of expected evidence is itself a finding.
