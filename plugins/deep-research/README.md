@@ -3,9 +3,7 @@
 A Claude Code plugin: multi-agent iterative research that runs entirely through
 Claude Code's native Agent tool. No Python, no API keys.
 
-> **Status: 0.9.0 — freshly built, validating.** Functional and in active
-> testing. The version will move to 1.0.0 once it has completed full runs
-> end-to-end.
+> **Status: 1.0.0.** Has completed full research runs end-to-end.
 
 You give it a research goal. It runs an autonomous loop — each round spawns
 parallel research workers (some building the case for a direction, some
@@ -14,6 +12,8 @@ claim, folds the findings into accumulating documents, and decides what to
 investigate next. The loop stops when the topic is adequately covered.
 
 The deliverable is a readable, sourced document written for a stated audience.
+After the loop, the plugin can optionally build a presentation deck from the
+finished research.
 
 ## What's in the pack
 
@@ -25,7 +25,8 @@ deep-research/
 │   └── deep-research-review/SKILL.md   debrief a finished run
 └── agents/
     ├── research-worker.md              research subagent
-    └── research-judge.md               scoring + synthesis subagent
+    ├── research-judge.md               scoring + synthesis subagent
+    └── deck-builder.md                 optional deck subagent
 ```
 
 ## Install
@@ -44,7 +45,7 @@ Or, if pushed to git:
 
 Installing the plugin makes everything available together: the two skills
 (namespaced `/deep-research:deep-research` and
-`/deep-research:deep-research-review`) and the two custom subagents.
+`/deep-research:deep-research-review`) and the three custom subagents.
 
 ## Use
 
@@ -73,6 +74,10 @@ To debrief a run:
   re-checks every quantitative claim against its source, detects
   context-stripping, then rewrites the deliverable documents and curates the
   roadmap of what to investigate next.
+- **The deck-builder** is an optional third subagent. After the loop, on
+  request, it consumes the finished `synthesis.md` / `evidence.md` /
+  `brief.md` and produces a single-file presentation deck — graded against a
+  10-item quality bar. It does no research.
 - **State** is plain Markdown files in the working directory. The run is
   resumable — re-invoking the skill picks up where it left off, never restarts.
 
