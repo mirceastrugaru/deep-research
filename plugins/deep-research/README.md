@@ -3,7 +3,8 @@
 A Claude Code plugin: multi-agent iterative research that runs entirely through
 Claude Code's native Agent tool. No Python, no API keys.
 
-> **Status: 1.0.0.** Has completed full research runs end-to-end.
+> **Status: 1.1.0.** Has completed full research runs end-to-end; deck-builder
+> ships a frozen design kit.
 
 You give it a research goal. It runs an autonomous loop — each round spawns
 parallel research workers (some building the case for a direction, some
@@ -23,10 +24,12 @@ deep-research/
 ├── skills/
 │   ├── deep-research/SKILL.md          the orchestrating skill
 │   └── deep-research-review/SKILL.md   debrief a finished run
-└── agents/
-    ├── research-worker.md              research subagent
-    ├── research-judge.md               scoring + synthesis subagent
-    └── deck-builder.md                 optional deck subagent
+├── agents/
+│   ├── research-worker.md              research subagent
+│   ├── research-judge.md               scoring + synthesis subagent
+│   └── deck-builder.md                 optional deck subagent
+└── assets/
+    └── deck-kit.html                   frozen deck design the deck-builder fills
 ```
 
 ## Install
@@ -76,8 +79,10 @@ To debrief a run:
   roadmap of what to investigate next.
 - **The deck-builder** is an optional third subagent. After the loop, on
   request, it consumes the finished `synthesis.md` / `evidence.md` /
-  `brief.md` and produces a single-file presentation deck — graded against a
-  10-item quality bar. It does no research.
+  `brief.md` and fills a frozen design kit (`assets/deck-kit.html`) to produce
+  a single-file presentation deck — graded against a 10-item quality bar.
+  Every deck shares one visual language; the agent composes slides but does
+  no design and no research.
 - **State** is plain Markdown files in the working directory. The run is
   resumable — re-invoking the skill picks up where it left off, never restarts.
 

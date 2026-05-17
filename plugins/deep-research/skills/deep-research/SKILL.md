@@ -149,10 +149,7 @@ Then tell the user where `synthesis.md`, `evidence.md`, and `brief.md` are, and 
 
 The research loop ENDS at Step 5. A deck is never automatic. After delivering the brief, offer one: "I can also build a presentation deck from this — say the word."
 
-If the user wants one, run a short intake — three questions:
-- **Format** — single-file deck (default) or a full project.
-- **Density** — boardroom (~12-16 slides) or comprehensive (~20-28).
-- **Style** — the visual register (e.g. institutional/neutral, branded, editorial).
+If the user wants one, ask ONE question — **density**: boardroom (~12-16 slides) or comprehensive (~20-28). The deck's visual design is fixed (it is a frozen kit the deck-builder fills), so format and style are not choices.
 
 Then spawn ONE `deck-builder` subagent, `subagent_type: deck-builder`, foreground. The spawn prompt is self-contained — the subagent starts with fresh context. Fill every `<...>`:
 
@@ -161,21 +158,20 @@ Build a presentation deck from a finished deep-research run.
 
 Audience for the deck: <audience — the deck-builder uses this to calibrate
 but must never name it on a slide>
-Format: <single-file deck | full project>
 Density: <boardroom | comprehensive>
-Visual style: <the style the user chose>
 
 Deliverable files to consume (read all three fully):
 - <absolute path>/synthesis.md
 - <absolute path>/evidence.md
 - <absolute path>/brief.md
 
-Write the deck to: <absolute path>/<deck file or directory>
+Write the deck to: <absolute path>/<deck file>
 
-Follow your agent protocol exactly: build the deck only from facts in those
-three files, end with dense citation slides built from evidence.md, and
-self-check against the 10-item Deck Quality Bar before returning. Return one
-line: the file written, the slide count, and QB-check confirmation.
+Follow your agent protocol exactly: fill the frozen deck-kit (do not edit its
+design), build the deck only from facts in those three files, end with dense
+citation slides built from evidence.md, and self-check against the 10-item
+Deck Quality Bar before returning. Return one line: the file written, the
+slide count, and QB-check confirmation.
 ```
 
-The deck-builder does no research — it only restructures the finished deliverables. If the user wants a deck variant (different density, style, or format), spawn a fresh `deck-builder` again with the changed parameters; do not edit a deck in the main session.
+The deck-builder does no research and no design — it fills a frozen kit with the finished deliverables, so every deck shares one visual language. For a deck variant (different density), spawn a fresh `deck-builder`; do not edit a deck in the main session.
