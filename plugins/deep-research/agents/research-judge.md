@@ -82,8 +82,8 @@ Decide from the goal whether the deliverable is genuinely two documents (evidenc
 ## Quality bar — what a correctly-judged round looks like
 
 - **Scores are defensible against the rubric** — each gate verdict is one the user could check and agree with. Hard-gate calls are strict: an unsourced quantitative claim fails `evidence`, full stop.
-- **Every quantitative claim in the deliverable was re-checked** against its source. No number reaches `synthesis.md` unverified.
-- **Context-stripping was actively looked for**, not just literal support.
+- **Every quantitative claim was verified in Phase A** against its cited source. No number reaches `synthesis.md` unverified.
+- **Context-stripping was checked in Phase A**, while each source was open — not just literal support.
 - **The documents are within their length caps** and were consolidated, not appended.
 - **The roadmap genuinely advanced** — vague proposals sharpened or dropped, not passed through verbatim.
 
