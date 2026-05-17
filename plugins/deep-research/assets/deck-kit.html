@@ -150,6 +150,15 @@
   .cite-row .src { font-family: 'Spline Sans Mono', monospace; color: var(--ink-faint); font-size: 9.4px; }
   .progress { position: absolute; bottom: 0; left: 0; height: 3px; background: var(--accent); transition: width 0.2s ease; }
   .hint { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); font-family: 'Spline Sans Mono', monospace; font-size: 10px; color: #6f6f72; letter-spacing: 0.1em; }
+  /* print — every slide, one per page, 16:9 landscape */
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: #fff; overflow: visible; }
+    .hint, .progress { display: none; }
+    .print-page { width: 1280px; height: 720px; overflow: hidden; page-break-after: always; break-after: page; }
+    .print-page:last-child { page-break-after: auto; break-after: auto; }
+    .print-page .slide { max-width: none; max-height: none; box-shadow: none; }
+  }
 </style>
 </head>
 <body>
@@ -370,8 +379,14 @@ slides.push(CiteSlide({
    ----- END EXAMPLES ----- */
 
 /* ===== FROZEN runtime — do not edit ===== */
+/* render one slide factory at index k — cover (0 args) takes no number */
+function renderSlide(k) {
+  const factory = slides[k];
+  return factory.length === 0 ? factory() : factory(k);
+}
 function Deck() {
   const [i, setI] = useState(0);
+  const [printing, setPrinting] = useState(false);
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') setI(p => Math.min(p + 1, slides.length - 1));
@@ -379,14 +394,25 @@ function Deck() {
       if (e.key === 'Home') setI(0);
       if (e.key === 'End') setI(slides.length - 1);
     };
+    const before = () => setPrinting(true);
+    const after = () => setPrinting(false);
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('beforeprint', before);
+    window.addEventListener('afterprint', after);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('beforeprint', before);
+      window.removeEventListener('afterprint', after);
+    };
   }, []);
-  /* cover takes no number; body slides number from 01 */
-  const factory = slides[i];
-  const node = factory.length === 0 ? factory() : factory(i);
+  /* print: stack every slide, one per page. screen: one slide at a time. */
+  if (printing) {
+    return h('div', { className: 'print-deck' },
+      slides.map((_, k) => h('div', { className: 'print-page', key: k }, renderSlide(k)))
+    );
+  }
   return h('div', { className: 'stage' },
-    node,
+    renderSlide(i),
     h('div', { className: 'progress', style: { width: ((i + 1) / slides.length * 100) + '%' } })
   );
 }
