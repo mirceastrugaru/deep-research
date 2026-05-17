@@ -13,6 +13,9 @@ The spawn prompt gives you absolute paths to:
 - `synthesis.md` — the full sourced research writeup. Your content backbone.
 - `evidence.md` — the citation catalog (one fact per line, with sources). Your source of truth for the citation slides.
 - `brief.md` — the short audience-targeted version. Your guide to what is decision-relevant.
+- `roadmap.md` — the research directions with their questions and parents. Source for the method slide's glossary.
+- `ledger.md` — per-direction round/agent/stance/score history. Source for the method slide's round columns.
+- `log.md` — per-round spawn lines and judge notes. Source for the method slide's judge notes and spawned-direction counts.
 - the **deck kit** — the frozen design file you fill (see the next section).
 
 It also gives you the **audience**, the **density** (boardroom / comprehensive), and the **output file path**.
@@ -76,9 +79,11 @@ If a finding does not fit an existing component, restructure the *content* to fi
     the evidence. Reader cannot tell if the author wants the
     outcome.
 
- 7. Traceable. Dedicated dense CiteSlide(s) at the end — actual
-    sources and quotes, not file pointers. Every on-slide claim
-    reachable from them.
+ 7. Traceable. Dedicated dense citation slides at the end —
+    actual sources and quotes, not file pointers; every on-slide
+    claim reachable from them. The research-method slide's
+    rounds, stances, scores and counts all trace to ledger.md /
+    log.md / roadmap.md — no invented run data.
 
  8. Synthesized. Headline + 3-6 bullets per slide. 30-second read.
 
@@ -92,17 +97,32 @@ Items 2–5 are the factual-register core and the most common failure mode. A de
 
 ## Citation slides
 
-The deck MUST end with one or more `CiteSlide`s built from `evidence.md`. They are deliberately dense — many rows, organized by topic block. Each row is a real source: the claim stated plainly, and the named source with date. Carry a short verbatim figure or quote where the evidence has one. Do not abbreviate to "see synthesis.md" — the actual sources go on the slide.
+The deck MUST end with dense citation slides built from `evidence.md`. Build them with the kit's `pushCites(slides, 'Sources', blocks)` helper — pass ALL citation blocks at once. The helper paginates: it packs blocks across as many pages as needed, never splitting a row, and titles the pages "Sources (1 of M)". Do NOT push `CiteSlide` yourself and do NOT decide the page count — `pushCites` owns that, so citation content can never crop. Each row is a real source: the claim stated plainly, and the named source with date. Carry a short verbatim figure or quote where the evidence has one. Never abbreviate to "see synthesis.md" — the actual sources go on the slide.
+
+## The research-method slide
+
+The deck MUST include one research-method slide, placed just before the citation slides. It shows how the research was done — the rounds, the paired supportive/adversarial agents, the scores, and what each direction asked. Build it with the kit's `pushMethod(slides, props)` helper.
+
+Build the `props` by reading three files — invent nothing:
+
+- **`ledger.md`** — per direction, a `## d-XXXXXX — name` heading then a markdown table `| round | agent | stance | score | notes |`. Read every table row. Each row is one agent run: its round number, stance (`supportive`/`adversarial`), and score (`5/5`, `0/5`, etc.). Group all rows by round to build the `rounds` array — each round lists its agent runs. Use the direction's short name, not its `d-` id.
+- **`log.md`** — `## [date] round N | M workers spawned` lines and judge lines. Use these to confirm the round count and worker count, and to write each round's one-line `judge` note (what the judge did — scored, spawned N directions, flagged a re-run, declared convergence). Derive the spawned-direction counts from here, not from guesswork.
+- **`roadmap.md`** — `## d-XXXXXX — name`, a `note:` line, and a `parent:` line. For each direction write a one-line plain-English `question` (what that direction set out to answer — paraphrase the `note`). If `parent:` names another direction, set the glossary entry's `parent` to that direction's name; otherwise leave `parent` empty (a seed direction).
+
+The `summary` line states counts derived from the files: total worker reports, judge passes, and fact-check failures re-run. Every number must trace to the files.
+
+If `ledger.md` or `log.md` is missing or empty, build the slide from whatever is present; if neither is present, skip the method slide rather than inventing one — and say so in your return line.
 
 ## Build method
 
-1. Read `synthesis.md`, `brief.md`, `evidence.md`, and the kit file fully — all four are absolute paths in your spawn prompt. If the kit will not read, STOP and report (see above).
-2. Outline the deck: `Cover`, a one-slide summary, then one slide per major finding/section, then `CiteSlide`(s). Map every body slide back to a `synthesis.md` section (use the `foot` prop to record the mapping).
+1. Read `synthesis.md`, `brief.md`, `evidence.md`, `roadmap.md`, `ledger.md`, `log.md`, and the kit file fully — all are absolute paths in your spawn prompt. If the kit will not read, STOP and report (see above).
+2. Outline the deck: `Cover`, a one-slide summary, one slide per major finding/section, then the research-method slide, then the citation slides. Map every body slide back to a `synthesis.md` section (use the `foot` prop to record the mapping).
 3. Choose a component per slide by content shape: `MetricSlide` when 3-4 headline numbers lead; `TwoColSlide` for two readings / for-and-against; `TableSlide` for a comparison; `BulletSlide` otherwise.
 4. Draft slide copy. Apply QB items 2–5 as you write: every sentence is a fact with a grade, or an open question — never a characterization.
 5. Copy the kit file to the output path. Replace the two tokens, fill the `slides` array, delete the commented examples. Touch nothing else.
-6. Build the `CiteSlide`(s) from `evidence.md`.
-7. Self-check against all 10 QB items. Fix every miss before returning. Pay special attention to items 2-3 (delete evaluative adjectives) and item 10 (diff your style block and components against the kit — they must be unchanged).
+6. Build the research-method slide with `pushMethod` from `ledger.md`/`log.md`/`roadmap.md`.
+7. Build the citation slides with `pushCites` from `evidence.md`.
+8. Self-check against all 10 QB items. Fix every miss before returning. Pay special attention to items 2-3 (delete evaluative adjectives), item 7 (the method slide's data traces to the files), and item 10 (diff your style block and components against the kit — they must be unchanged).
 
 ## Return
 

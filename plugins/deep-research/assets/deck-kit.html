@@ -150,6 +150,30 @@
   .cite-row .src { font-family: 'Spline Sans Mono', monospace; color: var(--ink-faint); font-size: 9.4px; }
   .progress { position: absolute; bottom: 0; left: 0; height: 3px; background: var(--accent); transition: width 0.2s ease; }
   .hint { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); font-family: 'Spline Sans Mono', monospace; font-size: 10px; color: #6f6f72; letter-spacing: 0.1em; }
+  /* method slide */
+  .m-rounds { display: grid; gap: 12px; }
+  .m-round { background: var(--card); border: 1px solid var(--rule); border-top: 2px solid var(--accent); padding: 10px 11px; display: flex; flex-direction: column; gap: 5px; }
+  .m-round h4 { font-family: 'Spline Sans Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); display: flex; justify-content: space-between; margin-bottom: 2px; }
+  .m-round h4 .m-n { color: var(--accent); }
+  .m-agent { font-size: 9.8px; line-height: 1.25; display: grid; grid-template-columns: 11px 1fr; gap: 5px; }
+  .m-pill { width: 10px; height: 10px; border-radius: 2px; margin-top: 2px; }
+  .m-pill.sup { background: #2f6f4f; }
+  .m-pill.adv { background: #8a2a2a; }
+  .m-pill.neu { background: #9a9a9c; }
+  .m-at { color: var(--ink-soft); }
+  .m-at b { color: var(--ink); font-weight: 600; }
+  .m-sc { color: var(--ink-faint); font-family: 'Spline Sans Mono', monospace; }
+  .m-sc.x { color: #b03030; font-weight: 600; }
+  .m-judge { margin-top: 3px; padding-top: 5px; border-top: 1px dashed var(--rule); font-family: 'Spline Sans Mono', monospace; font-size: 8.4px; line-height: 1.3; color: var(--ink-faint); }
+  .m-gloss-head { font-family: 'Spline Sans Mono', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); margin: 16px 0 8px; }
+  .m-gloss { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 28px; }
+  .m-g { display: grid; grid-template-columns: 132px 1fr; gap: 10px; font-size: 10px; line-height: 1.3; padding: 2px 0; }
+  .m-gn { color: var(--ink); font-weight: 600; }
+  .m-seed { color: var(--accent); font-weight: 400; font-size: 8.5px; }
+  .m-gq { color: var(--ink-soft); }
+  .m-legend { display: flex; gap: 16px; margin-top: 12px; font-size: 10px; color: var(--ink-soft); align-items: center; }
+  .m-legend .m-pill { display: inline-block; vertical-align: middle; margin-right: 4px; }
+  .m-sum { font-family: 'Spline Sans Mono', monospace; color: var(--ink-faint); }
   /* print — every slide, one per page, 16:9 landscape */
   @page { size: 1280px 720px; margin: 0; }
   @media print {
@@ -280,7 +304,9 @@ function TableSlide(p) {
   );
 }
 
-/* CiteSlide(props) — props: {kicker, blocks:[{title, rows:[{claim,src}]}]} */
+/* CiteSlide(props) — ONE citation page. Do not push this directly; use
+   pushCites() below, which paginates so content never crops.
+   props: {kicker, blocks:[{title, rows:[{claim,src}]}]} */
 function CiteSlide(p) {
   return (num) => h('div', { className: 'slide cite-slide' },
     h('div', { className: 'slide-num' }, String(num).padStart(2, '0')),
@@ -297,6 +323,116 @@ function CiteSlide(p) {
       )
     )
   );
+}
+
+/* CITE_ROW_BUDGET — rows that fit one citation page across both columns.
+   A cite row is fixed height; this is a deterministic constant, not a
+   measurement. Stays well clear of the 720px box. */
+const CITE_ROW_BUDGET = 26;
+
+/* pushCites(slides, kicker, blocks) — pushes ONE OR MORE CiteSlide pages so
+   no page overflows. Pass ALL citation blocks; this packs them across pages,
+   never splitting a row, and titles each page "kicker (N of M)".
+   The deck-builder calls this; it never pushes CiteSlide itself. */
+function pushCites(slides, kicker, blocks) {
+  /* pack blocks into pages, counting one row per cite row plus one for each
+     block heading; a block too big for one page is split across pages. */
+  const pages = [];
+  let cur = [], used = 0;
+  blocks.forEach((blk) => {
+    let rows = blk.rows.slice();
+    while (rows.length) {
+      const room = CITE_ROW_BUDGET - used - 1; /* -1 for the block heading */
+      if (room <= 1 && cur.length) { pages.push(cur); cur = []; used = 0; }
+      const take = Math.max(1, CITE_ROW_BUDGET - used - 1);
+      const chunk = rows.slice(0, take);
+      rows = rows.slice(take);
+      cur.push({ title: blk.title, rows: chunk });
+      used += chunk.length + 1;
+      if (used >= CITE_ROW_BUDGET - 1 && rows.length) { pages.push(cur); cur = []; used = 0; }
+    }
+  });
+  if (cur.length) pages.push(cur);
+  pages.forEach((pageBlocks, idx) => {
+    const k = pages.length > 1
+      ? kicker + ' (' + (idx + 1) + ' of ' + pages.length + ')'
+      : kicker;
+    slides.push(CiteSlide({ kicker: k, blocks: pageBlocks }));
+  });
+}
+
+/* ---- MethodSlide — how the research was done ----
+   ONE page describing the research run. Do not push directly; use
+   pushMethod(), which paginates the round columns if a run is large.
+   props: {
+     kicker, headline,
+     rounds: [{ n, agents:[{direction, stance:'supportive'|'adversarial',
+                            score:'5/5', note}], judge }],
+     directions: [{ name, question, parent }],   // parent: '' or source name
+     summary: 'free-text counts line'
+   }
+   A stance other than 'supportive'/'adversarial' renders neutral. */
+function MethodSlide(p) {
+  const pill = (st) => h('span', {
+    className: 'm-pill ' + (st === 'supportive' ? 'sup' : st === 'adversarial' ? 'adv' : 'neu')
+  });
+  return (num) => h('div', { className: 'slide' },
+    h('div', { className: 'slide-num' }, String(num).padStart(2, '0')),
+    h('div', { className: 'kicker' }, p.kicker),
+    h('div', { className: 'headline small' }, p.headline),
+    h('div', { className: 'toprule' }),
+    h('div', { className: 'body' },
+      h('div', { className: 'm-rounds', style: { gridTemplateColumns: 'repeat(' + Math.max(1, (p.rounds || []).length) + ', 1fr)' } },
+        (p.rounds || []).map((r, k) => h('div', { className: 'm-round', key: k },
+          h('h4', null, h('span', null, 'Round ' + r.n), h('span', { className: 'm-n' }, (r.agents || []).length + ' agents')),
+          (r.agents || []).map((a, j) => h('div', { className: 'm-agent', key: j },
+            pill(a.stance),
+            h('span', { className: 'm-at' },
+              h('b', null, a.direction + ' '),
+              a.stance + ' ',
+              h('span', { className: 'm-sc' + (a.score && a.score.charAt(0) === '0' ? ' x' : '') }, a.score)
+            )
+          )),
+          r.judge && h('div', { className: 'm-judge' }, 'JUDGE: ' + r.judge)
+        ))
+      ),
+      (p.directions && p.directions.length) ? h('div', { className: 'm-gloss-head' }, 'What each direction asked') : null,
+      (p.directions && p.directions.length) ? h('div', { className: 'm-gloss' },
+        p.directions.map((d, k) => h('div', { className: 'm-g', key: k },
+          h('span', { className: 'm-gn' }, d.name + ' ',
+            d.parent ? h('span', { className: 'm-seed' }, '▸ from ' + d.parent) : null),
+          h('span', { className: 'm-gq' }, d.question)
+        ))
+      ) : null,
+      h('div', { className: 'm-legend' },
+        h('span', null, h('span', { className: 'm-pill sup' }), ' Supportive — builds the case for'),
+        h('span', null, h('span', { className: 'm-pill adv' }), ' Adversarial — looks for the cracks'),
+        p.summary ? h('span', { className: 'm-sum' }, p.summary) : null
+      )
+    ),
+    Foot(p.foot || 'Research Method')
+  );
+}
+
+/* pushMethod(slides, props) — pushes the method slide. If the run has more
+   than METHOD_ROUND_CAP rounds, splits the round columns across pages so
+   nothing crops; the glossary goes on the last page only. */
+const METHOD_ROUND_CAP = 5;
+function pushMethod(slides, props) {
+  const rounds = props.rounds || [];
+  if (rounds.length <= METHOD_ROUND_CAP) { slides.push(MethodSlide(props)); return; }
+  for (let i = 0; i < rounds.length; i += METHOD_ROUND_CAP) {
+    const chunk = rounds.slice(i, i + METHOD_ROUND_CAP);
+    const last = i + METHOD_ROUND_CAP >= rounds.length;
+    const pageNo = Math.floor(i / METHOD_ROUND_CAP) + 1;
+    const pages = Math.ceil(rounds.length / METHOD_ROUND_CAP);
+    slides.push(MethodSlide(Object.assign({}, props, {
+      kicker: props.kicker + ' (' + pageNo + ' of ' + pages + ')',
+      rounds: chunk,
+      directions: last ? props.directions : [],
+      summary: last ? props.summary : ''
+    })));
+  }
 }
 
 /* helper: bold run inside a string of bullet text */
@@ -367,14 +503,35 @@ slides.push(TableSlide({
   foot: 'Topic',
 }));
 
-slides.push(CiteSlide({
-  kicker: 'Sources - 1 of N - Topics covered',
-  blocks: [
-    { title: 'Block heading', rows: [
-      { claim: 'The sourced claim, stated plainly.', src: 'Named source, date.' },
-    ]},
+// Citation slides — call pushCites, NOT slides.push(CiteSlide(...)).
+// Pass ALL blocks at once; pushCites paginates so nothing crops and
+// titles the pages "Sources (1 of M)" etc.
+pushCites(slides, 'Sources', [
+  { title: 'Block heading', rows: [
+    { claim: 'The sourced claim, stated plainly.', src: 'Named source, date.' },
+  ]},
+]);
+
+// Research-method slide — call pushMethod. Build the data from the run's
+// ledger.md (round/agent/stance/score), log.md (rounds, judge notes,
+// spawned-direction counts) and roadmap.md (direction names, questions,
+// parents). pushMethod paginates if the run has many rounds.
+pushMethod(slides, {
+  kicker: 'How This Was Researched',
+  headline: 'A factual headline describing the run structure.',
+  rounds: [
+    { n: 1, agents: [
+        { direction: 'Direction name', stance: 'supportive', score: '5/5' },
+        { direction: 'Another', stance: 'adversarial', score: '0/5' },
+      ], judge: 'scored, verified, spawned N new directions' },
   ],
-}));
+  directions: [
+    { name: 'Direction name', question: 'The one-line question it asked.', parent: '' },
+    { name: 'Spawned direction', question: 'Its question.', parent: 'Parent direction' },
+  ],
+  summary: 'N worker reports - N judge passes - N fact-check failures re-run',
+  foot: 'Research Method',
+});
 
    ----- END EXAMPLES ----- */
 
