@@ -7,7 +7,7 @@
     {
       "name": "deep-research",
       "source": "./plugins/deep-research",
-      "description": "Multi-agent iterative research. Spawns parallel supportive/adversarial research workers and a judge each round, accumulates a citation catalog and a deliverable document, and stops when the topic is adequately covered."
+      "description": "Multi-agent iterative research. Spawns parallel supportive/adversarial research workers and a judge each round, accumulates a citation catalog and a deliverable document, and stops when the topic is adequately covered. Optionally builds a presentation deck from the finished research."
     }
   ]
 }
