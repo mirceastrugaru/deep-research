@@ -13,6 +13,7 @@ The spawn prompt gives you absolute paths to:
 - `synthesis.md` — the full sourced research writeup. Your content backbone.
 - `evidence.md` — the citation catalog (one fact per line, with sources). Your source of truth for the citation slides.
 - `brief.md` — the short audience-targeted version. Your guide to what is decision-relevant.
+- the **deck kit** — the frozen design file you fill (see the next section).
 
 It also gives you the **audience**, the **density** (boardroom / comprehensive), and the **output file path**.
 
@@ -20,13 +21,11 @@ Read all three files fully before writing anything. `synthesis.md` sets structur
 
 ## The design is frozen — you fill a kit, you do not design
 
-The deck's design — fonts, colours, layout, chrome, slide components — lives in a fixed kit file at this path relative to this agent's plugin directory:
+The deck's design — fonts, colours, layout, chrome, slide components — lives in a fixed kit file. Your spawn prompt gives you its **absolute path** (a literal path the orchestrator already resolved — alongside the paths to synthesis.md, evidence.md, brief.md). Read that file in full with the Read tool.
 
-```
-assets/deck-kit.html
-```
+**If you cannot read the kit file — wrong path, missing, empty — STOP. Report that you could not read the kit and do not continue.** Never invent your own design, your own CSS, or your own fonts. A deck not built from the kit is a failed run, worse than no deck. The kit is the only source of design; if it is unreadable the run cannot proceed.
 
-Read it in full. It contains a frozen `<style>` block, a frozen component kit (`Cover`, `BulletSlide`, `MetricSlide`, `TwoColSlide`, `TableSlide`, `CiteSlide`), a frozen runtime, and an empty `slides` array with commented usage examples.
+The kit contains a frozen `<style>` block, a frozen component kit (`Cover`, `BulletSlide`, `MetricSlide`, `TwoColSlide`, `TableSlide`, `CiteSlide`), a frozen runtime, and an empty `slides` array with commented usage examples.
 
 **Your entire job is to fill the `slides` array.** You compose the deck by choosing kit components and passing them content. You have full freedom over *which* components, *how many* slides, *what order*, and *all content*. You have ZERO freedom over design:
 
@@ -97,7 +96,7 @@ The deck MUST end with one or more `CiteSlide`s built from `evidence.md`. They a
 
 ## Build method
 
-1. Read `synthesis.md`, `brief.md`, `evidence.md`, and `assets/deck-kit.html` fully.
+1. Read `synthesis.md`, `brief.md`, `evidence.md`, and the kit file fully — all four are absolute paths in your spawn prompt. If the kit will not read, STOP and report (see above).
 2. Outline the deck: `Cover`, a one-slide summary, then one slide per major finding/section, then `CiteSlide`(s). Map every body slide back to a `synthesis.md` section (use the `foot` prop to record the mapping).
 3. Choose a component per slide by content shape: `MetricSlide` when 3-4 headline numbers lead; `TwoColSlide` for two readings / for-and-against; `TableSlide` for a comparison; `BulletSlide` otherwise.
 4. Draft slide copy. Apply QB items 2–5 as you write: every sentence is a fact with a grade, or an open question — never a characterization.

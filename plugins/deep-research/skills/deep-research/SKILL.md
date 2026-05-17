@@ -151,7 +151,15 @@ The research loop ENDS at Step 5. A deck is never automatic. After delivering th
 
 If the user wants one, ask ONE question — **density**: boardroom (~12-16 slides) or comprehensive (~20-28). The deck's visual design is fixed (it is a frozen kit the deck-builder fills), so format and style are not choices.
 
-Then spawn ONE `deck-builder` subagent, `subagent_type: deck-builder`, foreground. The spawn prompt is self-contained — the subagent starts with fresh context. Fill every `<...>`:
+The deck design lives in a kit file bundled with this plugin at
+`${CLAUDE_PLUGIN_ROOT}/assets/deck-kit.html`. The subagent's spawn prompt is
+plain text — environment variables do NOT expand inside it. Before spawning,
+YOU resolve `${CLAUDE_PLUGIN_ROOT}` to its literal absolute path (it is set in
+your environment; e.g. run `echo "${CLAUDE_PLUGIN_ROOT}/assets/deck-kit.html"`)
+and write that literal path into the spawn prompt. Never pass the unexpanded
+`${CLAUDE_PLUGIN_ROOT}` string to the subagent — it cannot resolve it.
+
+Then spawn ONE `deck-builder` subagent, `subagent_type: deck-builder`, foreground. The spawn prompt is self-contained — the subagent starts with fresh context. Fill every `<...>` with a literal absolute path:
 
 ```
 Build a presentation deck from a finished deep-research run.
@@ -160,18 +168,22 @@ Audience for the deck: <audience — the deck-builder uses this to calibrate
 but must never name it on a slide>
 Density: <boardroom | comprehensive>
 
-Deliverable files to consume (read all three fully):
-- <absolute path>/synthesis.md
-- <absolute path>/evidence.md
-- <absolute path>/brief.md
+Frozen design kit (read it, fill its slides array, do NOT edit its design):
+<resolved absolute path>/assets/deck-kit.html
 
-Write the deck to: <absolute path>/<deck file>
+Deliverable files to consume (read all three fully):
+- <working dir absolute path>/synthesis.md
+- <working dir absolute path>/evidence.md
+- <working dir absolute path>/brief.md
+
+Write the deck to: <working dir absolute path>/<deck file>
 
 Follow your agent protocol exactly: fill the frozen deck-kit (do not edit its
 design), build the deck only from facts in those three files, end with dense
 citation slides built from evidence.md, and self-check against the 10-item
-Deck Quality Bar before returning. Return one line: the file written, the
-slide count, and QB-check confirmation.
+Deck Quality Bar before returning. If you cannot read the kit file, STOP and
+report it — do not design a deck of your own. Return one line: the file
+written, the slide count, and QB-check confirmation.
 ```
 
 The deck-builder does no research and no design — it fills a frozen kit with the finished deliverables, so every deck shares one visual language. For a deck variant (different density), spawn a fresh `deck-builder`; do not edit a deck in the main session.
