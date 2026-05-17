@@ -143,7 +143,13 @@ Or stop at the round cap. Whichever comes first. Set `converged: true` in `state
 
 After the loop ends, produce `brief.md` once: a ~800-1200 word version of `synthesis.md` targeted at the stated audience. Same quality bar as `synthesis.md` — orientation opening, no process exhaust, no self-qualification, plain English (real subjects, normal word order, nothing written for effect), calibrated. Pick the 4-6 most decision-relevant findings for that audience plus the open questions they would need answered next. Write it yourself; do not spawn a subagent for this.
 
-Then tell the user where `synthesis.md`, `evidence.md`, and `brief.md` are, and give a 2-3 sentence summary of what the research found.
+Then deliver a clear closing message to the user. It must:
+- Give a 2-3 sentence summary of what the research found.
+- List the artifacts produced, each with its absolute path and a one-line description:
+  - `synthesis.md` — the full sourced research document, the main deliverable.
+  - `evidence.md` — the citation catalog: every claim with its source.
+  - `brief.md` — the short (~800-1200 word) version targeted at the stated audience.
+- End by offering the optional deck (see Step 6).
 
 ## Step 6 — Optional presentation deck
 
