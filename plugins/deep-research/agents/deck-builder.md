@@ -51,8 +51,14 @@ If a finding does not fit an existing component, restructure the *content* to fi
  1. Decision-first. Every slide changes what the reader decides.
     No slide that is only "context." Lead with the verdict.
 
- 2. Factual register. An expert reader must not smell sell-side
-    polish. State facts; do not characterize them.
+ 2. Plain English. Write each line the way you would say it out
+    loud to a colleague. Use a real subject — a person, a team, a
+    company, a document — not an abstract noun ("the analysis",
+    "diligence") as the thing acting. Normal word order. Nothing
+    written for effect: no line that sounds like a headline or a
+    saying. A plain line that sounds slightly flat is correct; a
+    clever one is wrong. An expert reader must not smell sell-side
+    polish — state facts, do not characterize them.
 
  3. No evaluative adjectives. Cut genuine, real, robust, strong,
     attractive, compelling. If a word rates the thing instead of

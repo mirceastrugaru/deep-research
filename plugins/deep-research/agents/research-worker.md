@@ -83,6 +83,7 @@ confidence label, it is not an inference — leave it out.)
 - **Specifics, not generalizations.** Numbers, dates, versions, named entities — not "significant growth" or "various sources."
 - **Contrary evidence is present, not suppressed.** A file that reports only what fits the stance has failed the bar.
 - **"Couldn't find" is honest and specific.** It names what was sought and how hard.
+- **Plain English.** Write each sentence the way you would say it out loud to a colleague. Use a real subject — a person, a team, a company, a document — not an abstract noun as the thing acting. Say who did what, in normal order. No phrasing written for effect. If a sentence needs a second read, rewrite it.
 
 ## Return
 
