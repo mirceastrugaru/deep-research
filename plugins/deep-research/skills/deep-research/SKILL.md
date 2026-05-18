@@ -136,7 +136,7 @@ line: the file you wrote and an observation count.
 Stop when ALL THREE:
 - every direction in `roadmap.md` is covered — both stances `yes` in its `coverage:` line. A `FAILED_NEEDS_RERUN` stance is NOT covered; the run cannot converge while any direction has one. AND
 - no new directions were proposed for 2 consecutive rounds (`rounds_without_new_directions >= 2`). AND
-- the latest round's judge Phase D note in `log.md` raised no unresolved recency flag or internal contradiction. An open Phase D flag blocks convergence even when coverage is complete — open or re-run the direction that closes it.
+- the latest round's judge Phase D note in `log.md` raised no unresolved flag — no unresolved recency flag, no internal contradiction, and no reachable public fact still wrongly deferred to "data-room only" or left as an un-pinned `estimate`. An open Phase D flag blocks convergence even when coverage is complete — open or re-run the direction that closes it.
 
 Or stop at the round cap. Whichever comes first. Set `converged: true` in `state.md`.
 
