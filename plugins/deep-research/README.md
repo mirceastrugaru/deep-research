@@ -7,7 +7,7 @@ Claude Code's native Agent tool. No Python, no API keys.
 > ships a frozen design kit.
 
 You give it a research goal. It runs an autonomous loop — each round spawns
-parallel research workers (some building the case for a direction, some
+research workers (some building the case for a direction, some
 against it), then a judge scores their work, verifies every quantitative
 claim, folds the findings into accumulating documents, and decides what to
 investigate next. The loop stops when the topic is adequately covered.
