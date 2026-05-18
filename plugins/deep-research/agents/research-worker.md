@@ -50,9 +50,30 @@ NEVER construct, guess, or type a URL from memory. You do not know what pages ex
 - Any URL that did not come from a search result or a fetched page is forbidden. If you think "the vendor probably has a page at X" — that is a guess. Search for it instead.
 - A guessed URL wastes the round on 404s and risks a citation to a page that does not exist. Every URL you fetch or cite must trace to a search result or a real link.
 
+## Fetch the result set, not the first hit — hard rule
+
+For any **load-bearing fact** — a fact the analysis leans on: a number, a company's current status, a partnership, a competitive claim, an award or its absence — you do NOT fetch one source and move on. You fetch the SET.
+
+- After a search, fetch the **top 3-5 results**, not just the first. Skip only obvious low-quality aggregators (RocketReach, Growjo, ZoomInfo and similar) — read the rest.
+- The first search result is often the *founding* event of a story (the original announcement, the original study), not its current state. The newer, superseding fact is usually further down the same result list. You will not see it if you stop at result one.
+- **Disagreement between results is a finding, not noise.** If one result says a company runs a product and another says that company was sold, that contradiction IS the lead — chase it until you know which is current. Never pick the first result and ignore the rest.
+- Reconcile before you write: state what the spread of sources says, then what the current, best-supported fact is.
+
+"One primary source" is the standard of *evidence* for a settled fact — it is NOT a stopping rule for *search*. You scan the result set to find the right source and to catch a newer one; then you cite the primary source. Stopping at the first hit is the single largest cause of stale and one-sided findings.
+
+## Recency check — hard rule
+
+Every load-bearing fact carries a date. Before you write it, ask: **is this still true as of the research date?** A 2024 deployment may have been sold in 2025. A 2025 study may have been retracted in 2026. A search whose top hit is old must be followed by a recency search ("<subject> 2026", "<subject> latest", "<subject> update") to check whether the fact was superseded. If it changed, the current state is the finding and the old state is context.
+
+## Claims of absence — hard rule
+
+A claim that something does NOT exist — "absent from analyst rankings", "no named customers", "not certified" — is only as good as the search behind it. One search finding nothing is not proof of absence; it is one absence. Before writing a negative claim, run at least **three** distinct searches from different angles. If all three come back empty, write the claim AND state how you checked. If any one finds the thing, the negative claim is false — drop it.
+
 ## Evidence ceiling — hard rule
 
 Track attempts per specific quantitative claim (a number, date, rate). After ~5 search attempts on the SAME claim with no primary source, STOP searching that claim. Write it as an `EVIDENCE LIMIT:` line and move on. Do not rephrase it a sixth way. Never fabricate a number. Never anchor on a low-quality aggregator. Absence of expected evidence is itself a finding.
+
+**Paywalled is not the same as private.** A public record behind a paywall — a regulatory filing, a company register entry (Bundesanzeiger, Companies House and similar), a paid analyst report — is still a PUBLIC source. Do not label it "data-room only" or treat it as an evidence ceiling. Write it as: "obtainable from <named source> for a fee — not pulled here." `EVIDENCE LIMIT:` and "data-room only" are for things genuinely outside the public record (internal financials, private contracts), not for public records you simply did not pay to open. Mislabelling a reachable public source as data-room-only hides a fact a buyer could and should have.
 
 ## Narrow focus
 

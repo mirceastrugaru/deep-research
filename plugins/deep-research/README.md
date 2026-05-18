@@ -3,7 +3,7 @@
 A Claude Code plugin: multi-agent iterative research that runs entirely through
 Claude Code's native Agent tool. No Python, no API keys.
 
-> **Status: 1.2.0.** Has completed full research runs end-to-end; deck-builder
+> **Status: 1.3.0.** Has completed full research runs end-to-end; deck-builder
 > ships a frozen design kit.
 
 You give it a research goal. It runs an autonomous loop — each round spawns

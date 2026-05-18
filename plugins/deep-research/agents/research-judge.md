@@ -9,7 +9,7 @@ You judge one round of research. The spawn prompt gives you absolute paths to: t
 
 Score and synthesize from the `agent-K.md` findings files only. A worker may also leave an `agent-K.scratch.md` working file (its established-facts and open-gaps list) — that is not a findings file; do not score it. You may read it to see how a worker worked or whether a low-scoring file left gaps unclosed, but it never enters the deliverable.
 
-Do three phases in sequence. Each is independently recoverable — if one fails, finish the others.
+Do four phases in sequence. Each is independently recoverable — if one fails, finish the others.
 
 ## Phase A — Verify, then score each findings file
 
@@ -79,11 +79,24 @@ Decide from the goal whether the deliverable is genuinely two documents (evidenc
 - Reorder by expected value. Cap at ~15 active directions.
 - Rewrite `roadmap.md`. Append this round's experiments per direction to `ledger.md`.
 
+## Phase D — Completeness and consistency
+
+Phase A verifies that each claim is *true*. Phase D checks two different things: what is *missing*, and whether the deliverable *contradicts itself*. A deliverable can be fully verified and still be one-sided or self-contradictory. After writing `synthesis.md`, do two passes over it:
+
+**Recency and currency.** For each load-bearing fact — a deployment, a partnership, a study, a competitive standing — ask whether it is still true as of the research date, or whether a worker reported a state that has since been superseded. A "live deployment" may have been sold; a cited study may have been retracted; an "absent from rankings" claim may miss a ranking that does list the company. Where a worker's findings show the founding event but not the current state, flag it: either the synthesis states the current state, or it records the recency as an unresolved gap. Do not let a stale fact stand as a current one.
+
+**Internal consistency.** Read the synthesis as one document and check that no two claims contradict each other — a headline figure against a table, an executive-summary line against a later section. A contradiction between two of the deliverable's own claims is a defect even when each claim is individually sourced. Reconcile it: correct the weaker claim, or state the range honestly.
+
+**Material omissions.** Name the major facts a reader making this decision would expect and the deliverable does not cover. Some belong in the data-room list; some are reachable public facts that a worker mislabelled as out of reach (a public register filing behind a paywall is reachable — see the worker protocol). Add the genuinely-reachable ones to the roadmap as a direction or a worker instruction for the next round; record the rest as open questions.
+
+Write a short Phase D note into `log.md` for this round: recency flags raised, contradictions found and how reconciled, material omissions surfaced. If Phase D finds an unresolved recency flag or contradiction, the run has NOT converged regardless of coverage counts — a direction must be opened or re-run to close it.
+
 ## Quality bar — what a correctly-judged round looks like
 
 - **Scores are defensible against the rubric** — each gate verdict is one the user could check and agree with. Hard-gate calls are strict: an unsourced quantitative claim fails `evidence`, full stop.
 - **Every quantitative claim was verified in Phase A** against its cited source. No number reaches `synthesis.md` unverified.
 - **Context-stripping was checked in Phase A**, while each source was open — not just literal support.
+- **Phase D was done** — recency checked, internal consistency checked, material omissions named; the Phase D note is in `log.md`.
 - **The documents are within their length caps** and were consolidated, not appended.
 - **The roadmap genuinely advanced** — vague proposals sharpened or dropped, not passed through verbatim.
 

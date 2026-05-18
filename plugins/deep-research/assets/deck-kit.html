@@ -140,22 +140,22 @@
   td { padding: 9px 12px 9px 0; border-bottom: 1px solid var(--rule); color: var(--ink-soft); vertical-align: top; }
   td b { color: var(--ink); font-weight: 600; }
   .cite-slide { padding: 44px 56px 48px; }
-  .cite-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 34px; }
+  .cite-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 30px; }
   .cite-block h4 {
     font-family: 'Spline Sans Mono', monospace; font-size: 10px;
     letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px;
   }
-  .cite-row { font-size: 10.4px; line-height: 1.4; color: var(--ink-soft); padding: 5px 0; border-bottom: 1px solid var(--rule); }
+  .cite-row { font-size: 9.6px; line-height: 1.32; color: var(--ink-soft); padding: 3.5px 0; border-bottom: 1px solid var(--rule); }
   .cite-row .claim { color: var(--ink); font-weight: 600; }
   .cite-row .src { font-family: 'Spline Sans Mono', monospace; color: var(--ink-faint); font-size: 9.4px; }
   .progress { position: absolute; bottom: 0; left: 0; height: 3px; background: var(--accent); transition: width 0.2s ease; }
   .hint { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); font-family: 'Spline Sans Mono', monospace; font-size: 10px; color: #6f6f72; letter-spacing: 0.1em; }
   /* method slide */
-  .m-rounds { display: grid; gap: 12px; }
-  .m-round { background: var(--card); border: 1px solid var(--rule); border-top: 2px solid var(--accent); padding: 10px 11px; display: flex; flex-direction: column; gap: 5px; }
+  .m-rounds { display: grid; gap: 9px; }
+  .m-round { background: var(--card); border: 1px solid var(--rule); border-top: 2px solid var(--accent); padding: 8px 9px; display: flex; flex-direction: column; gap: 3px; }
   .m-round h4 { font-family: 'Spline Sans Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); display: flex; justify-content: space-between; margin-bottom: 2px; }
   .m-round h4 .m-n { color: var(--accent); }
-  .m-agent { font-size: 9.8px; line-height: 1.25; display: grid; grid-template-columns: 11px 1fr; gap: 5px; }
+  .m-agent { font-size: 8.6px; line-height: 1.2; display: grid; grid-template-columns: 11px 1fr; gap: 5px; }
   .m-pill { width: 10px; height: 10px; border-radius: 2px; margin-top: 2px; }
   .m-pill.sup { background: #2f6f4f; }
   .m-pill.adv { background: #8a2a2a; }
@@ -164,14 +164,14 @@
   .m-at b { color: var(--ink); font-weight: 600; }
   .m-sc { color: var(--ink-faint); font-family: 'Spline Sans Mono', monospace; }
   .m-sc.x { color: #b03030; font-weight: 600; }
-  .m-judge { margin-top: 3px; padding-top: 5px; border-top: 1px dashed var(--rule); font-family: 'Spline Sans Mono', monospace; font-size: 8.4px; line-height: 1.3; color: var(--ink-faint); }
-  .m-gloss-head { font-family: 'Spline Sans Mono', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); margin: 16px 0 8px; }
-  .m-gloss { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 28px; }
-  .m-g { display: grid; grid-template-columns: 132px 1fr; gap: 10px; font-size: 10px; line-height: 1.3; padding: 2px 0; }
+  .m-judge { margin-top: 2px; padding-top: 4px; border-top: 1px dashed var(--rule); font-family: 'Spline Sans Mono', monospace; font-size: 7.6px; line-height: 1.25; color: var(--ink-faint); }
+  .m-gloss-head { font-family: 'Spline Sans Mono', monospace; font-size: 8.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); margin: 10px 0 5px; }
+  .m-gloss { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 24px; }
+  .m-g { display: grid; grid-template-columns: 118px 1fr; gap: 9px; font-size: 8.4px; line-height: 1.22; padding: 1px 0; }
   .m-gn { color: var(--ink); font-weight: 600; }
   .m-seed { color: var(--accent); font-weight: 400; font-size: 8.5px; }
   .m-gq { color: var(--ink-soft); }
-  .m-legend { display: flex; gap: 16px; margin-top: 12px; font-size: 10px; color: var(--ink-soft); align-items: center; }
+  .m-legend { display: flex; gap: 14px; margin-top: 8px; font-size: 8.6px; color: var(--ink-soft); align-items: center; }
   .m-legend .m-pill { display: inline-block; vertical-align: middle; margin-right: 4px; }
   .m-sum { font-family: 'Spline Sans Mono', monospace; color: var(--ink-faint); }
   /* print — every slide, one per page, 16:9 landscape */
@@ -328,7 +328,7 @@ function CiteSlide(p) {
 /* CITE_ROW_BUDGET — rows that fit one citation page across both columns.
    A cite row is fixed height; this is a deterministic constant, not a
    measurement. Stays well clear of the 720px box. */
-const CITE_ROW_BUDGET = 26;
+const CITE_ROW_BUDGET = 18;
 
 /* pushCites(slides, kicker, blocks) — pushes ONE OR MORE CiteSlide pages so
    no page overflows. Pass ALL citation blocks; this packs them across pages,
