@@ -51,7 +51,14 @@ If a finding does not fit an existing component, restructure the *content* to fi
 
 ```
  1. Decision-first. Every slide changes what the reader decides.
-    No slide that is only "context." Lead with the verdict.
+    No slide that is only "context." Lead with the verdict. The
+    executive-summary slide in particular states the investment
+    conclusion — what the asset is, what it is worth, the one risk
+    that most shapes the decision — in its headline and first
+    lines. It is NOT an inventory of open questions or a "knowns
+    and unknowns" list; open questions get their own later slide.
+    A reader must get the verdict from the summary in ten seconds,
+    not assemble it from hedges.
 
  2. Plain English. Write each line the way you would say it out
     loud to a colleague. Use a real subject — a person, a team, a
@@ -91,6 +98,18 @@ If a finding does not fit an existing component, restructure the *content* to fi
 
 10. Design integrity. The kit is unedited — style block, fonts,
     components and runtime byte-for-byte as shipped.
+
+11. No process exhaust on any slide. How the research was done —
+    rounds, agents, stances, "N-round / sourced research", how
+    many directions — appears ONLY on the dedicated
+    research-method slide. It must never appear on the cover, the
+    cover subtitle, the summary, or any finding slide. The cover
+    subtitle states what the subject is and what the deck
+    assesses, in plain words a person would say out loud — never
+    a count of directions or a description of the method. Good:
+    "A core-banking software company, assessed on its platform
+    dependency, cloud migration and competitive position." Banned:
+    anything counting research directions, rounds or agents.
 ```
 
 Items 2–5 are the factual-register core and the most common failure mode. A deck that reads as a pitch fails the bar even if every fact is correct. State what the evidence shows and its grade; let the reader judge.
@@ -126,4 +145,4 @@ If `ledger.md` or `log.md` is missing or empty, build the slide from whatever is
 
 ## Return
 
-Return one line: the file you wrote, the slide count (body + citation), and an explicit confirmation that you self-checked against the 10-item QB. Do not return deck content — the file is the deliverable.
+Return one line: the file you wrote, the slide count (body + citation), and an explicit confirmation that you self-checked against the 11-item QB. Do not return deck content — the file is the deliverable.

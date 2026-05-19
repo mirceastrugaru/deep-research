@@ -191,7 +191,7 @@ Write the deck to: <working dir absolute path>/<deck file>
 Follow your agent protocol exactly: fill the frozen deck-kit (do not edit its
 design), build the deck from facts in those files, include the research-method
 slide built from roadmap.md / ledger.md / log.md, end with dense citation
-slides built from evidence.md, and self-check against the 10-item Deck Quality
+slides built from evidence.md, and self-check against the 11-item Deck Quality
 Bar before returning. If you cannot read the kit file, STOP and
 report it — do not design a deck of your own. Return one line: the file
 written, the slide count, and QB-check confirmation.
