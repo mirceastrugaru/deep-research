@@ -50,28 +50,35 @@ If a finding does not fit an existing component, restructure the *content* to fi
 ## DECK QUALITY BAR — grade the deck against every item before you return.
 
 ```
- 1. Decision-first. Every slide changes what the reader decides.
-    No slide that is only "context." Lead with the verdict. The
-    executive-summary slide in particular states the investment
-    conclusion — what the asset is, what it is worth, the one risk
-    that most shapes the decision — in its headline and first
-    lines. It is NOT an inventory of open questions or a "knowns
-    and unknowns" list; open questions get their own later slide.
-    A reader must get the verdict from the summary in ten seconds,
-    not assemble it from hedges.
+ 1. Decision-first, and name the thing. Every slide changes what
+    the reader decides. Lead with the verdict. A headline must
+    name the specific thing it refers to, never gesture at it: not
+    "one SAP risk a buyer must price" but "SAP can block the deal:
+    a buyout needs SAP's written consent"; not "two unknowns
+    govern the deal" but "Two SAP contracts are not public: the IP
+    licence and the consent terms". If the headline says "one
+    risk", "two questions", "a key gap" without naming them, it
+    has failed. The executive-summary slide states the investment
+    conclusion — the asset, its worth, the single named risk — in
+    its headline and first lines, not an inventory of open
+    questions.
 
- 2. Plain English. Write each line the way you would say it out
-    loud to a colleague. Use a real subject — a person, a team, a
-    company, a document — not an abstract noun ("the analysis",
-    "diligence") as the thing acting. Normal word order. Nothing
-    written for effect: no line that sounds like a headline or a
-    saying. A plain line that sounds slightly flat is correct; a
-    clever one is wrong. An expert reader must not smell sell-side
-    polish — state facts, do not characterize them.
+ 2. Plain spoken English, no jargon. Write each line the way you
+    would say it out loud to a colleague who is smart but not in
+    your field. Use a real subject (a person, a company, a
+    document), normal word order. Ban consultant and finance
+    jargon: do not write "deal mechanics", "the asset", "value
+    lever", "optionality", "the thesis rests on", "underwrite" as
+    a verb. Say the plain thing: "how the deal works", "the
+    company", "what the buyer is counting on". Never use an
+    em-dash or an en-dash; use a comma, a full stop, or a colon.
+    A plain line that sounds slightly flat is correct; a clever
+    one is wrong. An expert reader must not smell sell-side polish.
 
- 3. No evaluative adjectives. Cut genuine, real, robust, strong,
-    attractive, compelling. If a word rates the thing instead of
-    describing it, delete it.
+ 3. No LLM filler adjectives. Cut genuine, real, robust, strong,
+    attractive, compelling, seamless, key, crucial. If a word
+    rates the thing instead of describing it, delete it. State
+    the fact; let the reader judge.
 
  4. Evidence grade on every claim. Each number/claim is tagged
     inline via the bullet `grade` prop: company-stated / estimate /
