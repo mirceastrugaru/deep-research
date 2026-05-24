@@ -1,11 +1,11 @@
 ---
 name: deep-research
-description: Multi-agent iterative research. Use when the user has a research goal — a question to answer, a topic to investigate, a due-diligence subject — and wants a thorough, sourced, audience-targeted document. Runs an autonomous loop of research workers and a judge.
+description: Multi-agent iterative research. Use when the user has a research goal — a question to answer, a topic to investigate, a due-diligence subject — and wants a thorough, sourced, audience-targeted document. Runs an autonomous loop of parallel research workers and a judge.
 ---
 
 # Deep Research
 
-You run a multi-agent research loop from THIS main session. You do not do the research yourself — you orchestrate. Each round you spawn several research workers (via the Agent tool, one at a time — see Step 3), then one judge, then check convergence. The deliverable is a readable, sourced document for a stated audience.
+You run a multi-agent research loop from THIS main session. You do not do the research yourself — you orchestrate. Each round you spawn several research workers (via the Agent tool, all in one message so they run in parallel — see Step 3), then one judge, then check convergence. The deliverable is a readable, sourced document for a stated audience.
 
 ## Hard rules
 
@@ -103,7 +103,7 @@ Each iteration is one round. Before starting a round, check the two stop conditi
    4. **Saturated directions** (covered, no new sub-directions) — lowest.
    - A direction is **covered** once BOTH stances are `yes`. A `FAILED_NEEDS_RERUN` stance does NOT count toward covered — the direction stays open until that stance is re-run and passes.
    - Assign this round's workers to the highest-priority items. Split stances evenly: half supportive, half adversarial. Multiple workers may share a direction with opposite stances. When the round's worker count exceeds the priority-1 and priority-2 items, fill remaining slots down the order.
-4. **Spawn research workers ONE AT A TIME** — one `Agent` call per message, `subagent_type: research-worker`, foreground, then the next. Do NOT spawn multiple workers in a single message: batching several Agent calls together drops most of their file writes — the workers return a status line but never write the findings file. One worker per message is the only reliable mode. Use the spawn-prompt template below; the spawn prompt must state that the worker MUST write the findings file before returning (the file on disk is the only deliverable; a status line without a file is a failed run).
+4. **Spawn ALL research workers for the round in ONE message** — one `Agent` call per worker, all in the same message, `subagent_type: research-worker`, foreground. The workers are independent (each owns its own direction, stance, and findings-file path), so the harness runs them in parallel. Use the spawn-prompt template below; the spawn prompt must state that the worker MUST write the findings file before returning (the file on disk is the only deliverable; a status line without a file is a failed run). The file-existence check in step 5 catches any worker whose file did not land — re-spawn just that worker.
 5. **Verify every findings file exists and is non-empty** before the judge. After all workers for the round have run, list `findings/round-<N>/` and confirm one non-empty `agent-K.md` per worker. For any that is missing or empty, re-spawn that worker (it overwrites its own path — idempotent). Only after every file is present, or a worker has genuinely failed twice, proceed. A worker's return text is NOT proof its file was written — check the file. Write a failure line to `log.md` for any worker that fails twice; never block the round on one genuinely-failed worker.
 6. **Write this round's `log.md` line** (round number, workers spawned, any failures) BEFORE spawning the judge — so you and the judge never write `log.md` concurrently.
 7. **Spawn ONE judge**, `subagent_type: research-judge`, foreground, with absolute paths to: this round's findings files, `evidence.md`, `synthesis.md`, `roadmap.md`, `ledger.md`, `log.md`, plus the goal and audience.
