@@ -222,18 +222,23 @@ Deliverable files to consume (read all fully):
 - <working dir absolute path>/evidence.md
 - <working dir absolute path>/brief.md
 
-Write the memo HTML to: <working dir absolute path>/memo.html
-Write the memo PDF to:  <working dir absolute path>/memo.pdf
+Write the memo HTML to:     <working dir absolute path>/memo.html
+Write the memo PDF to:      <working dir absolute path>/memo.pdf
+Write the coverage ledger:  <working dir absolute path>/memo-coverage.md
 
-Follow your agent protocol exactly: fill the frozen memo-kit (do not edit its
-design); let the content set the structure; every fact carries a numbered
-footnote and every inference is tagged INF with its reasoning; verify every
-legal/regulatory/named-case citation against a primary source (WebFetch) before
-citing; link public sources, cite internal/own-inference plainly; run the
-writing-bar self-check (plain English, no LLM filler, no em-dashes, no recycling
-the subject's own materials as findings); render the PDF and regenerate it after
-any edit. If you cannot read the kit file, STOP and report it. Return one line:
-the HTML and PDF paths, section count, footnote count, self-check confirmation.
+Follow your agent protocol exactly: synthesis.md is the BINDING fact-set - re-voice
+and compress it, do not re-select; carry every material synthesis point (evidence.md
+is verify-only, not a source of extra points); fill the frozen memo-kit (do not edit
+its design); every fact carries a numbered footnote and every inference is tagged INF
+with its reasoning; verify every legal/regulatory/named-case citation against a primary
+source (WebFetch) before citing; link public sources, cite internal/own-inference
+plainly; write the MANDATORY memo-coverage.md ledger (every synthesis point CARRIED or
+CUT-with-reason) and the memo-verification.md coherence table; run the writing-bar
+self-check (plain English, no LLM filler, no em-dashes, no recycling the subject's own
+materials as findings, no inventing precision you cannot estimate); render the PDF and
+regenerate it after any edit. If you cannot read the kit file, STOP and report it.
+Return one line: HTML + PDF + memo-coverage.md paths, section count, footnote count,
+synthesis points CUT, self-check confirmation.
 ```
 
 The memo-builder does no new research and no design — it may only WebFetch to verify a primary source before citing it. For a revision, spawn a fresh `memo-builder`; do not hand-edit the memo in the main session.

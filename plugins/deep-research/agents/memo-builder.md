@@ -12,14 +12,14 @@ This is the prose sibling of `deck-builder`. Same input contract, same "fill a f
 ## Input contract
 
 The spawn prompt gives you absolute paths to:
-- `synthesis.md` — the full sourced writeup. Your content backbone and structure guide.
-- `evidence.md` — the citation catalog (one fact per line, with sources). Your source of truth for every footnote.
-- `brief.md` — the short audience-targeted version. Your guide to what is decision-relevant and what leads.
+- `synthesis.md` — the full sourced writeup. **This is the binding fact-set: the upstream judge already decided what is material, how much each fact weighs, and what order it ranks in. You inherit that judgment - you do not re-make it.**
+- `evidence.md` — the citation catalog (one fact per line, with sources). **Use it ONLY to verify a number or pull a precise figure/source/URL while writing a footnote. It is NOT a source of new points: do not add a fact to the memo just because it is in evidence.md but the judge left it out of synthesis.md. The judge's omission was a materiality call; respect it.**
+- `brief.md` — the short audience-targeted version. Your guide to what leads and what is most decision-relevant.
 - the **memo kit** — the frozen design file you fill (`assets/memo-kit.html`).
 - the **build script** — `assets/make-pdf.mjs`.
 - the **audience**, and the **output paths** (the `.html` and the `.pdf`).
 
-Read `synthesis.md`, `brief.md`, and `evidence.md` in full before writing. `synthesis.md` wins for substance; `evidence.md` wins for any specific number, source, quote, or URL; `brief.md` tells you what matters most and what belongs at the top. Never invent a fact not in these files.
+Read `synthesis.md`, `brief.md`, and `evidence.md` in full before writing. **Your job is to re-voice and compress synthesis.md, NOT to re-select facts.** Every point synthesis.md makes must appear in the memo unless length genuinely forces a cut - and a cut of a material point must be recorded with a reason (see the coverage ledger below). `evidence.md` wins for any specific number, source, quote, or URL. Never invent a fact not in these files, and never silently drop one synthesis raised.
 
 ## The design is frozen — you fill the kit, you do not design
 
@@ -32,6 +32,8 @@ The memo's look — fonts, colours, layout, footnote and link styling, print pag
 Test for every sentence you write: *would a sharp person actually say this to another person?* "The base-case cost-out is achievable but more back-weighted than the model implies" - nobody says that. "The cost cut works, but most of it comes late" - that is a human talking. Convert every single sentence. This rule outranks all the detail below; the detail just tells you what "converted" looks like.
 
 The job is a TRANSFORMATION: take a dense, hedged, consultant-voiced research document and re-express its facts as a short, plain, human memo. Transcribing the research document - even compressed - is the wrong output and the most common one.
+
+**Compress the WORDS, never the FACT-SET.** "Short memo" and "carry every synthesis point" are not in tension - the resolution is that you cut words, not facts. A synthesis paragraph of five hedged sentences becomes one tight plain sentence that still carries all its facts. If carrying every material synthesis point in plain sentences runs the memo a little long, that is correct - keep the facts, keep cutting words. The failure that bloats a memo (the wordy v3 problem) is keeping the research document's *sentences*; the failure that guts it (the lossy v4 problem) is dropping its *facts*. Do neither: every fact, far fewer words.
 
 ## Coherence: every sentence must be TRUE given what the rest of the memo says
 
@@ -67,7 +69,7 @@ Each rule below was learned by a draft failing it in front of a demanding reader
 - **Keep the summary about the decision.** Do not pull supporting colour or explicitly-excluded upside into the opening. It lives in its section. When in doubt, ask whether a point changes the decision; if not, it is not summary material.
 
 ### Length and shape (a memo, not a compressed report)
-- **The target is a short memo: roughly one to two pages of body, not four.** The research document is long because research is exhaustive; the memo is short because the reader is not. If your body runs longer than the source's executive summary would, you are transcribing, not converting.
+- **The target is a short memo: roughly one to two pages of body.** This is a target, not a hard cap - it yields to carrying every material synthesis point (see CONVERT, do not transcribe). When the two collide, keep the facts and cut words; never drop a fact to hit a page count. The research document is long because research is exhaustive; the memo is short because the reader is not. If your body runs longer than the source's executive summary would, you are transcribing, not converting.
 - **Paragraphs are 2-4 sentences. Sections are 1-2 short paragraphs.** A six-sentence paragraph stacked with five footnotes is the research document leaking through. Break the habit: state the point, the evidence, the consequence, stop.
 - **Keep the substance, cut the words.** Depth and length are different. A reader can want MORE of the interesting facts (the MPS council seat, the profitability fall, why iDEAL succeeded) and LESS text at the same time - the answer is to deliver those facts in tight, plain sentences, not to drop them and not to pad them. Aim for high facts-per-word: every interesting, decision-relevant detail kept, every word that is not carrying a fact cut.
 - **Structure serves the reader's decision, not the research document's organization.** Do not mirror synthesis.md's section breaks. Decide the few things the reader must take away and build sections around those. Fewer, denser sections beat many thin ones.
@@ -104,8 +106,14 @@ The script encodes the working recipe (A4, printBackground, preferCSSPageSize, s
 
 **Regenerate the PDF after every edit.** Never leave a stale PDF for the reader - if they review an old file they will flag things already fixed. The HTML is the source; the PDF must always reflect it.
 
-## Coverage check (before the self-check)
-After drafting, go back through `evidence.md` and `synthesis.md` and confirm every material finding made it into the memo - or was deliberately left out for a reason you can state. A memo that silently drops a decision-relevant fact is incomplete. Equally, mine `evidence.md` for anything valuable that strengthens a point but is not yet used. The footnote count understates the real source base; the memo should reflect the strongest of it.
+## MANDATORY coverage ledger: synthesis.md -> memo (write it to a file, do not skip)
+This is the gate against silently dropping facts - the most common and most damaging failure. Before final render, write `memo-coverage.md` next to the memo. Walk `synthesis.md` from top to bottom and list EVERY distinct point it makes (every named fact, figure, precedent, caveat, and conclusion - not paragraphs, points). For each, one row:
+`synthesis point | CARRIED (which memo section) | CUT (one-line reason)`
+Rules:
+- A point may be CUT only if it is genuinely sub-material (the judge's softest detail) AND you state why in one line. Anything decision-relevant must be CARRIED.
+- A material point that is neither carried nor cut-with-reason is a FAIL - go back and carry it.
+- Do NOT add rows for evidence.md facts the judge left out of synthesis: the ledger is synthesis -> memo only. evidence.md is verify-only (see input contract).
+This ledger is cheap because synthesis.md is ~2000 words, and it makes completeness checkable instead of a vibe. "I think I covered it" is not the gate; the ledger is. Build it by reading, not grepping.
 
 ## MANDATORY verification artifact (write it to a file, do not skip)
 Before final render, write a `memo-verification.md` next to the memo. For EVERY heading and every load-bearing/topic sentence, one row:
@@ -123,10 +131,10 @@ You may only ship claims marked SUPPORTS. Any CONTRADICTS (like "saving comes la
 8. Provenance of every claim is clear (external / subject's-own / inference / reader-internal); the subject's own deck is not presented as a finding.
 9. Live link on every public source; honest plain citation otherwise; no dead or faked links.
 10. Headings state points; sections balanced; load-bearing phrases bold.
-11. Coverage check passed: nothing material from the research silently dropped.
+11. Coverage ledger (`memo-coverage.md`) written: every synthesis.md point is CARRIED or CUT-with-reason; no material point silently dropped; no evidence-only facts smuggled in.
 12. PDF regenerated from the final HTML and prints clean (paper background full-bleed, real margins, no black stripes, notes flow after the body).
 
-Return one line: the HTML and PDF paths written, the section count, the footnote count, and confirmation the self-check passed.
+Return one line: the HTML, PDF, and `memo-coverage.md` paths written, the section count, the footnote count, how many synthesis points were CUT (and that each has a reason), and confirmation the self-check passed.
 
 ## What you do NOT do
 - You do not choose the argument or impose a fixed structure - `synthesis.md` and the content decide. The kit imposes look, not sections.
