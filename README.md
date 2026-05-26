@@ -1,36 +1,22 @@
 # deep-research
 
-Multi-agent iterative research for Claude Code. Give it a research goal; it
-runs an autonomous loop of parallel research workers and a judge and produces
-a sourced, audience-targeted document. It can then optionally build a
-presentation deck from the finished research.
+Multi-agent iterative research for Claude Code. Give it a goal; it runs an
+autonomous loop of supportive and adversarial workers and a verifying judge,
+and produces a sourced, audience-targeted document - then optionally a deck or
+a cited memo (PDF). No Python, no API keys.
 
-## Install
-
-```
-/plugin marketplace add mirceastrugaru/deep-research
-/plugin install deep-research@deep-research
-```
-
-Restart Claude Code.
-
-## Update
+## Install / update
 
 ```
-/plugin marketplace update deep-research
-/plugin update deep-research
+/plugin marketplace add mirceastrugaru/deep-research   # then: update
+/plugin install deep-research@deep-research            # then: update
 ```
 
-Restart Claude Code.
+Restart Claude Code after installing or updating.
 
 ## Use
 
 ```
-/deep-research:deep-research
-```
-
-Debrief a finished run:
-
-```
-/deep-research:deep-research-review
+/deep-research:deep-research          run a research goal
+/deep-research:deep-research-review   debrief a finished run
 ```

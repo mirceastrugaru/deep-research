@@ -150,7 +150,7 @@ Then deliver a clear closing message to the user. It must:
   - `synthesis.md` — the full sourced research document, the main deliverable.
   - `evidence.md` — the citation catalog: every claim with its source.
   - `brief.md` — the short (~800-1200 word) version targeted at the stated audience.
-- End by offering the optional deck (see Step 6).
+- End by offering the optional deck (see Step 6) and the optional written memo (see Step 7).
 
 ## Step 6 — Optional presentation deck
 
@@ -198,3 +198,42 @@ written, the slide count, and QB-check confirmation.
 ```
 
 The deck-builder does no research and no design — it fills a frozen kit with the finished deliverables, so every deck shares one visual language. For a deck variant (different density), spawn a fresh `deck-builder`; do not edit a deck in the main session.
+
+## Step 7 — Optional written memo (PDF)
+
+The deck (Step 6) is slides; the memo is a prose document — a plain-English, fully-cited writeup that an expert reader will trust, rendered to a clean PDF. Also never automatic. After delivering the brief, offer one: "I can also write this up as a cited memo (PDF) — say the word." A user may want the memo, the deck, both, or neither.
+
+The memo design and the writing bar are fixed: the `memo-builder` agent fills a frozen kit (`${CLAUDE_PLUGIN_ROOT}/assets/memo-kit.html`) and renders the PDF with `${CLAUDE_PLUGIN_ROOT}/assets/make-pdf.mjs`. As in Step 6, resolve `${CLAUDE_PLUGIN_ROOT}` to its literal absolute path before spawning (run `echo "${CLAUDE_PLUGIN_ROOT}"`) and write literal paths into the spawn prompt — never pass the unexpanded variable.
+
+Then spawn ONE `memo-builder` subagent, `subagent_type: memo-builder`, foreground. Self-contained spawn prompt, fill every `<...>` with a literal absolute path:
+
+```
+Build a cited written memo (and its PDF) from a finished deep-research run.
+
+Audience for the memo: <audience>
+
+Frozen design kit (read it, fill the body and notes, do NOT edit its design):
+<resolved absolute path>/assets/memo-kit.html
+PDF build script:
+<resolved absolute path>/assets/make-pdf.mjs
+
+Deliverable files to consume (read all fully):
+- <working dir absolute path>/synthesis.md
+- <working dir absolute path>/evidence.md
+- <working dir absolute path>/brief.md
+
+Write the memo HTML to: <working dir absolute path>/memo.html
+Write the memo PDF to:  <working dir absolute path>/memo.pdf
+
+Follow your agent protocol exactly: fill the frozen memo-kit (do not edit its
+design); let the content set the structure; every fact carries a numbered
+footnote and every inference is tagged INF with its reasoning; verify every
+legal/regulatory/named-case citation against a primary source (WebFetch) before
+citing; link public sources, cite internal/own-inference plainly; run the
+writing-bar self-check (plain English, no LLM filler, no em-dashes, no recycling
+the subject's own materials as findings); render the PDF and regenerate it after
+any edit. If you cannot read the kit file, STOP and report it. Return one line:
+the HTML and PDF paths, section count, footnote count, self-check confirmation.
+```
+
+The memo-builder does no new research and no design — it may only WebFetch to verify a primary source before citing it. For a revision, spawn a fresh `memo-builder`; do not hand-edit the memo in the main session.

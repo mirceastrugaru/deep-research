@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<!--
+  FROZEN MEMO KIT. The design is fixed. Fill the body and the notes; do not edit the <style> block,
+  the fonts, the :root colours, or the print rules. Produce the PDF with assets/make-pdf.mjs.
+  Markers in the body below show every component you may use. Delete the markers you do not need.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MEMO TITLE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F7F3EC; --rule:#D7CFBE; --ink:#1F1B17; --ink-soft:#4A4239; --ink-mute:#8A8275; --accent:#9A3B2E;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#2a2724;}
+  body{font-family:"Source Serif 4",Georgia,serif;color:var(--ink);-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .page{width:840px;background:var(--paper);margin:24px auto;padding:70px 88px 76px 88px;}
+
+  /* PRINT: paper fills the whole sheet, real per-page margins, no black stripes, natural flow.
+     Do not change this block - it is the recipe that makes the PDF print clean. */
+  @media print{
+    @page{ margin:18mm 20mm; background:var(--paper); }
+    html,body{ background:var(--paper) !important; }
+    .page{ width:100%; max-width:100%; margin:0; padding:0; background:var(--paper); }
+    h2,h3{ break-after:avoid; }
+  }
+
+  .doc-kicker{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;}
+  h1{font-family:"Geist",sans-serif;font-weight:600;font-size:31px;line-height:1.16;letter-spacing:-.01em;color:var(--ink);margin-bottom:13px;}
+  .meta{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.04em;color:var(--ink-mute);border-bottom:1px solid var(--rule);padding-bottom:18px;margin-bottom:26px;}
+
+  h2{font-family:"Geist",sans-serif;font-weight:600;font-size:18px;color:var(--ink);margin:28px 0 10px 0;letter-spacing:-.005em;}
+  h2 .num{color:var(--ink-mute);font-weight:700;margin-right:9px;}
+
+  p{font-size:15.5px;line-height:1.6;color:var(--ink);margin-bottom:13px;}
+  p:last-child{margin-bottom:0;}
+  strong{font-weight:700;}
+
+  a.fn{color:var(--accent);text-decoration:none;font-size:10px;vertical-align:super;font-family:"IBM Plex Mono",monospace;font-weight:500;}
+  sup.inf-tag{font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.04em;color:var(--ink-mute);font-style:normal;vertical-align:super;}
+
+  ul{margin:0 0 13px 0;padding-left:20px;}
+  li{font-size:15.5px;line-height:1.55;margin-bottom:7px;}
+  li:last-child{margin-bottom:0;}
+
+  .pull{border-left:2px solid var(--accent);padding:3px 0 3px 17px;margin:17px 0;font-size:16px;line-height:1.5;color:var(--ink-soft);}
+  .pull strong{color:var(--ink);}
+
+  .notes{margin-top:40px;border-top:1px solid var(--ink);padding-top:18px;}
+  .notes h3{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:14px;font-weight:500;}
+  .notes ol{margin:0;padding-left:0;list-style:none;counter-reset:note;}
+  .notes li{font-family:"IBM Plex Mono",monospace;font-size:10px;line-height:1.55;color:var(--ink-mute);margin-bottom:9px;padding-left:30px;position:relative;counter-increment:note;}
+  .notes li::before{content:counter(note);position:absolute;left:0;top:0;color:var(--accent);font-weight:500;}
+  .notes li b{color:var(--ink-soft);font-weight:500;}
+  .notes a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--rule);}
+  .notes a:hover{border-bottom-color:var(--accent);}
+  .notes .tag-f{color:var(--ink-mute);}
+  .notes .tag-i{color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ===== HEADER ===== -->
+  <div class="doc-kicker">KICKER &middot; ONE LINE OF CONTEXT</div>
+  <h1>MEMO TITLE</h1>
+  <div class="meta">DATE &middot; scope, basis, confidentiality on one line</div>
+
+  <!-- ===== OPENING ===== state the answer / the new thing first, plain English, each claim cited -->
+  <p>Opening paragraph. Lead with the point.<a class="fn" href="#n1">1</a></p>
+
+  <!-- ===== SECTION ===== heading states the point; sections are optional, let content decide -->
+  <h2><span class="num">1</span>Heading that states the point, not a label</h2>
+  <p>Body. Fact gets a note<a class="fn" href="#n2">2</a>. An inference gets a tag<sup class="inf-tag">INF</sup><a class="fn" href="#n3">3</a> whose note gives the reasoning. <strong>Bold the load-bearing phrase.</strong></p>
+
+  <!-- ===== PULL-QUOTE (optional) ===== the single most important sentence -->
+  <div class="pull"><strong>The one line the reader must take away.</strong></div>
+
+  <!-- ===== LIST (optional) ===== e.g. a diligence / open-questions list -->
+  <ul>
+    <li><strong>Lead phrase.</strong> The point, then why it matters.<a class="fn" href="#n4">4</a></li>
+  </ul>
+
+  <!-- ===== NOTES ===== one per claim; F = verified fact, INF = inference with reasoning -->
+  <div class="notes">
+    <h3>Notes &middot; <span class="tag-f">F = verified fact</span> &middot; <span class="tag-i">INF = inference, reasoning given</span></h3>
+    <ol>
+      <li id="n1"><b>F.</b> Source. [<a href="https://example.com">live link when public</a>]</li>
+      <li id="n2"><b>F.</b> Source. [named source; no link if internal / the subject's own materials]</li>
+      <li id="n3"><b>INF.</b> The reasoning and what it rests on. [source of the underlying facts]</li>
+      <li id="n4"><b>F (gap).</b> Not in the public record; a question for diligence.</li>
+    </ol>
+  </div>
+
+</div>
+</body>
+</html>
