@@ -110,8 +110,15 @@ Each iteration is one round. Before starting a round, check the stop condition i
 6. **Write this round's `log.md` line** (round number, workers spawned, any failures) BEFORE spawning the judge — so you and the judge never write `log.md` concurrently.
 7. **Spawn ONE judge**, `subagent_type: research-judge`, foreground, with absolute paths to: this round's findings files, `evidence.md`, `synthesis.md`, `roadmap.md`, `ledger.md`, `log.md`, plus the goal and audience.
 8. **Handle judge failure.** Findings files survive on disk. Retry the judge once. If it fails twice, STOP and report — do not continue with no synthesis.
-9. **Update `state.md`** — set `rounds_without_new_directions` (reset to 0 if the judge added any direction, else +1). Do NOT touch `round` here — it was already set in step 1 of this round.
-10. **Check convergence** (Step 4).
+9. **Update `state.md`** — refresh `rounds_without_new_directions` for the log (reset to 0 if the judge added any direction, else +1). It no longer stops the loop; keep it only as a record. Do NOT touch `round` here — it was already set in step 1 of this round.
+10. **Report the round to the user (REQUIRED — this is how they see it running).** After the judge returns, print ONE compact progress block to the user before starting the next round. Read it from the files the judge just wrote; do not make it up. It must show:
+    - `Round N/<cap> done.` and how many workers ran / failed.
+    - Worker scores this round (from `log.md`), e.g. `scores: 7,7,8,0(re-run),7`.
+    - Tree size: total directions, how many `covered`/`saturated`/`closed`, and how many NEW children the judge spawned this round (with their names) — this is the visible sign the tree is growing.
+    - Deepest depth reached so far.
+    - One line on what next round will work (the top-priority directions).
+    A run with no such output looks frozen to the user. Always print it.
+11. **Check the stop condition** (Step 4): if `round` has reached `round_cap`, exit to Step 5; otherwise loop to the next round.
 
 ### Worker spawn-prompt template
 
@@ -132,6 +139,15 @@ separated from inferences, every observation sourced, contrary evidence
 recorded honestly, EVIDENCE LIMIT lines where you hit a ceiling. Return one
 line: the file you wrote and an observation count.
 ```
+
+### How the user can watch a run (tell them this once, when the loop starts)
+
+A run can take many minutes per round. So the user never thinks it has frozen, tell them at the start how to watch it, and give the live per-round report (Step 3, item 10). From another terminal, in the working directory, the user can check progress directly:
+- `cat state.md` — current round, the cap, converged flag.
+- `tail -n 40 log.md` — the per-round lines, worker scores, and judge notes as they land.
+- `ls findings/round-*/` — how many findings files exist this round (the workers writing as they finish).
+- `grep -c '^## d-' roadmap.md` — how many directions the tree holds; re-run it across rounds and the number climbing is the tree growing.
+State that the run is alive as long as `log.md` is gaining lines and new `findings/round-N/` files appear; if neither changes for a long time, a worker or the judge has stalled.
 
 ## Step 4 — Stop condition
 
