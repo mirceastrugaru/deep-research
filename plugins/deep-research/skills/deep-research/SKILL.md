@@ -5,7 +5,7 @@ description: Multi-agent iterative research. Use when the user has a research go
 
 # Deep Research
 
-You run a multi-agent research loop from THIS main session. You do not do the research yourself — you orchestrate. Each round you spawn several research workers (via the Agent tool, all in one message so they run in parallel — see Step 3), then one judge, then check convergence. The deliverable is a readable, sourced document for a stated audience.
+You run a multi-agent research loop from THIS main session. You do not do the research yourself — you orchestrate. Each round you spawn several research workers (via the Agent tool, all in one message so they run in parallel — see Step 3), then one judge, then check the round cap. The deliverable is a readable, sourced document for a stated audience.
 
 ## Hard rules
 
@@ -67,8 +67,9 @@ converged: false
 # Roadmap
 
 ## d-a1b2c3 — <direction name>
-status: open            # open | covered | saturated | killed
+status: open            # open | covered | saturated | closed
 parent: -               # parent direction ID, or - for a seed direction
+depth: 0                # 0 for a seed/root; parent's depth + 1 for a child
 coverage: supportive=no adversarial=no passing=no
 note: <one line — why this matters / current state>
 
@@ -92,7 +93,7 @@ Direction IDs are `d-` + 6 hex chars, stable for the life of the run. Seed direc
 
 ## Step 3 — The round loop
 
-Each iteration is one round. Before starting a round, check the two stop conditions in §4 Convergence — if either holds, do not start another round; go to Step 5 (final brief). Otherwise run the round:
+Each iteration is one round. Before starting a round, check the stop condition in Step 4 — if `round` has reached `round_cap`, do not start another round; go to Step 5 (final brief). Otherwise run the round:
 
 1. **Set the round number.** This round's number is `state.md`'s `round` + 1 (it is 1 for the first round after init, which starts at `round: 0`). If that number would exceed `round_cap`, do not start the round — stop and go to Step 5. Otherwise write the number to `round` in `state.md` NOW, before spawning anything. Every `findings/round-<N>/...` path this round uses this number. Setting it up front is what keeps `state.md` and the `findings/` directories in sync.
 2. **Read** `roadmap.md` and `ledger.md`.
@@ -100,7 +101,8 @@ Each iteration is one round. Before starting a round, check the two stop conditi
    1. **`FAILED_NEEDS_RERUN` stances** — a worker investigated this stance but the judge discarded the file (score 0). It is a known hole in a direction already judged worth investigating. Re-run it before any unstarted work.
    2. **Unstarted stances** (`no`) on directions not yet investigated.
    3. **Single-stance directions** — one stance settled, the other unstarted.
-   4. **Saturated directions** (covered, no new sub-directions) — lowest.
+   4. **Deepen the tree** — child directions the judge spawned from strong findings (each `parent:` set, `depth:` > 0). These carry the tree downward; rank them by the judge's expected-value order, biased toward shallower depth first so the tree widens before any one branch runs deep.
+   5. **Saturated / closed directions** (covered with no pending children, or `closed: dead-end`) — lowest; re-touch only if nothing above remains. The loop runs to the round cap, so when higher-priority work is exhausted, prefer pulling in the judge's next-round candidate children over re-confirming a saturated node.
    - A direction is **covered** once BOTH stances are `yes`. A `FAILED_NEEDS_RERUN` stance does NOT count toward covered — the direction stays open until that stance is re-run and passes.
    - Assign this round's workers to the highest-priority items. Split stances evenly: half supportive, half adversarial. Multiple workers may share a direction with opposite stances. When the round's worker count exceeds the priority-1 and priority-2 items, fill remaining slots down the order.
 4. **Spawn ALL research workers for the round in ONE message** — one `Agent` call per worker, all in the same message, `subagent_type: research-worker`, foreground. The workers are independent (each owns its own direction, stance, and findings-file path), so the harness runs them in parallel. Use the spawn-prompt template below; the spawn prompt must state that the worker MUST write the findings file before returning (the file on disk is the only deliverable; a status line without a file is a failed run). The file-existence check in step 5 catches any worker whose file did not land — re-spawn just that worker.
@@ -131,14 +133,13 @@ recorded honestly, EVIDENCE LIMIT lines where you hit a ceiling. Return one
 line: the file you wrote and an observation count.
 ```
 
-## Step 4 — Convergence
+## Step 4 — Stop condition
 
-Stop when ALL THREE:
-- every direction in `roadmap.md` is covered — both stances `yes` in its `coverage:` line. A `FAILED_NEEDS_RERUN` stance is NOT covered; the run cannot converge while any direction has one. AND
-- no new directions were proposed for 2 consecutive rounds (`rounds_without_new_directions >= 2`). AND
-- the latest round's judge Phase D note in `log.md` raised no unresolved flag — no unresolved recency flag, no internal contradiction, and no reachable public fact still wrongly deferred to "data-room only" or left as an un-pinned `estimate`. An open Phase D flag blocks convergence even when coverage is complete — open or re-run the direction that closes it.
+**The round cap is the only stop.** Run a round every iteration until `round` reaches `round_cap`, then stop and go to Step 5. There is no early "converged" exit: the loop does NOT stop because coverage looks complete or because a round added no new directions. The run explores for the full budget of rounds the user set, then stops. To make a run shorter or longer, set `round_cap` at intake — that number IS the run length.
 
-Or stop at the round cap. Whichever comes first. Set `converged: true` in `state.md`.
+When the cap is reached, set `converged: true` in `state.md` (it marks "loop finished", not "topic exhausted") and proceed to the final brief.
+
+Coverage state and the judge's Phase D flags still matter — they drive *what* each round works on (priority order in Step 3, what the judge re-runs and adds). They simply no longer stop the loop. A round whose directions are all covered does not idle: the judge must branch (see Step 3 / the judge protocol) so the next round has deeper directions to pursue. `rounds_without_new_directions` is still tracked for the log, but it no longer triggers a stop.
 
 ## Step 5 — Final brief
 

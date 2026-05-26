@@ -71,14 +71,28 @@ A finished document a human reads, not a worklog. Hold it to this bar:
 
 Decide from the goal whether the deliverable is genuinely two documents (evidence + synthesis) or one artifact. Two is the default for research/due-diligence; collapse to one only when the goal's output is genuinely a single artifact.
 
-## Phase C — Curate the roadmap
+## Phase C — Grow the roadmap (it is a TREE of ideas, not a checklist)
 
-- For each existing direction: keep, deprioritize, or kill. Kill directions investigated and found unproductive. Deprioritize partially-covered lower-value ones.
+The roadmap is a growing tree of hypotheses. Each direction is one idea; a child is a deeper question its parent's findings raised. Your job here is to GROW that tree, not to close it down. The run no longer stops when coverage looks complete (the loop runs to its round cap), so a roadmap that stops producing new directions does not end the run — it just wastes rounds re-confirming finished work. Every round you must push the tree wider and deeper.
+
+**Branch — turn strong findings into deeper children (this is what creates DEPTH).**
+- For every findings file that PASSED (soft-gate score high, ~6+ on the round's scale), ask: *what specific, decision-relevant question did this finding just open?* Each such question becomes a CHILD direction one level deeper, with `parent:` set to the finding's direction. A strong finding is a fork to go deeper, NOT a dead end.
+- Example: a finding "the 2021 IP transfer's nature is unknown — assignment or revocable licence" is not "saturated, done"; it is a child direction "establish whether the 2021 SAP IP transfer is an outright assignment or a revocable licence, and what each means for the buyer."
+- **`saturated` means only "no more worker re-runs needed on THIS node" — it never means "stop descending from it."** A node can be saturated for its own stances and still owe children. Do not stamp a node done and walk away from the questions it raised.
+
+**Do NOT prune (this is what protects WIDTH).**
+- **Do not kill directions for being "unproductive".** A direction tested and found to be a dead end is a RESULT — mark it `closed: disproven` (or `closed: dead-end`) with a one-line reason and keep it in the tree as evidence. Deletion throws away the finding that it led nowhere.
+- **No active-direction cap.** The roadmap may hold as many active directions as the tree needs — 30, 50, 80. Do not trim the list to a fixed size; let it grow.
+
+**Brakes (so the tree grows steadily, not explosively or down a rabbit hole).**
+- **Per-round child cap: add at most ~8 new children per round.** If more than 8 strong findings each want a child, add the 8 highest expected-value children this round and leave the rest as noted candidates for next round. Steady widening, not an explosion.
+- **Depth bias against rabbit-holing.** Track `depth:` per direction (a seed/root is `depth: 0`; a child is parent depth + 1). Only spawn a deeper child when the question it answers is DECISION-RELEVANT — would change the reader's view — not merely an open detail. A trivial open detail is a data-room note, not a child. When ranking what to work next, bias toward breadth at shallow depth before chasing any one branch deep: do not let one branch run many levels down while sibling roots sit untested.
+
+**Bookkeeping (unchanged correctness rules).**
 - **A stance that scored 0 is not covered — it is failed.** If a worker investigated a direction with some stance and you scored that file 0 (hard-gate fail), its output was discarded — that stance has NOT been researched. In the direction's `coverage:` line, mark that stance `FAILED_NEEDS_RERUN`, not `no` and not covered. Never call such a direction "partially covered" and never deprioritize it for that reason: a discarded hard-gate failure on a direction already judged worth investigating is a known hole, and re-running it ranks ABOVE merely-unstarted directions. A direction with a `FAILED_NEEDS_RERUN` stance is never killed and never saturated until that stance has been re-run and passed.
-- For each proposed new direction, apply three checks: (1) specific enough to assign? (2) not already covered? (3) would confirming or disconfirming it change the analysis? Add only those that pass. Rewrite a promising-but-vague proposal to be specific before adding it.
-- Preserve stable direction IDs (`d-` + 6 hex chars). Generate new IDs in the same format. Track each new direction's parent.
-- Reorder by expected value. Cap at ~15 active directions.
-- Rewrite `roadmap.md`. Append this round's experiments per direction to `ledger.md`.
+- For each candidate child, apply three checks before adding: (1) specific enough to assign? (2) not already covered by an existing direction? (3) would confirming or disconfirming it change the analysis? Add only those that pass; rewrite a promising-but-vague candidate to be specific before adding it. (This gates QUALITY of children — it is not a reason to add none.)
+- Preserve stable direction IDs (`d-` + 6 hex chars). Generate new IDs in the same format. Set every new direction's `parent:` and `depth:`.
+- Reorder by expected value (with the depth bias above). Rewrite `roadmap.md`. Append this round's experiments per direction to `ledger.md`.
 
 ## Phase D — Completeness and consistency
 
@@ -103,7 +117,7 @@ Write a short Phase D note into `log.md` for this round: recency flags raised, c
 - **Context-stripping was checked in Phase A**, while each source was open — not just literal support.
 - **Phase D was done** — recency checked, internal consistency checked, material omissions named; the Phase D note is in `log.md`.
 - **The documents are within their length caps** and were consolidated, not appended.
-- **The roadmap genuinely advanced** — vague proposals sharpened or dropped, not passed through verbatim.
+- **The roadmap genuinely GREW** — strong findings spawned deeper children (the tree gained depth), dead ends were marked `closed` and kept (not deleted), and no direction was pruned just to shrink the list. A round that only re-confirmed saturated nodes and added no children is a failed round, not a converged one. Vague child candidates were sharpened before adding, not passed through verbatim.
 
 ## Return
 
