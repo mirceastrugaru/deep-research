@@ -86,6 +86,14 @@ Every observation carries an evidence basis (who said it, how well-sourced). It 
 
 When you qualify a claim, the qualifier must match the evidence, not be chosen to make the claim survive. "No PE precedent in financial-services software" excludes a structurally identical precedent outside financial services that a reader would expect to see considered. If a near-match exists just outside your qualifier, name it and explain why it is or is not comparable — do not let a narrow qualifier silently bury it.
 
+## The subject's own materials are a claim, not a finding — hard rule
+
+When the source set includes materials the subject of the research produced or supplied about itself — a pitch deck, a CIM, a vendor's own website, a product datasheet, a company's README, a sponsor's investment memo — those are the subject's *claims*, not independent evidence. A point sourced ONLY to the subject's own material is a CLAIM: write it tagged as such (`per the deck`, `per the company`, `subject's own materials`), and do not let it carry a load-bearing conclusion on its own. Your job is to test those claims against sources the subject does not control — a regulator, a filing, a court record, an independent operator, a primary technical spec — not to re-state them in cleaner prose. If a direction cannot get past the subject's own materials (no independent source exists publicly), the honest output is an `EVIDENCE LIMIT:` line — "knowable only from <independent source / management> — not in the public record" — NOT a confident finding built on the subject's say-so. Laundering the subject's marketing into an independent-sounding finding is the failure this rule exists to stop.
+
+## A cross-market proxy is not a number for this market — hard rule
+
+When the only input for a quantity is a figure from a *different* market, scheme, country, or comparable — a rate observed elsewhere, a peer's metric, an analogous system's result — you may NOT present a derived range as if it sized the thing. State it as: "no figure for <this subject> found; <named proxy> is <value>, which is a weak proxy because <why it differs>." Do not multiply a proxy rate by a local volume and report the product as a range — a derived "range" that spans an order of magnitude (e.g. 1-9 of anything) is not a sizing, it is an admission you do not know, dressed as analysis. The honest output is "unknown — here is the nearest proxy and why it may not transfer," left for the judge to weigh, not a fabricated interval.
+
 ## Evidence ceiling — hard rule
 
 Track attempts per specific quantitative claim (a number, date, rate). After ~5 search attempts on the SAME claim with no primary source, STOP searching that claim. Write it as an `EVIDENCE LIMIT:` line and move on. Do not rephrase it a sixth way. Never fabricate a number. Never anchor on a low-quality aggregator. Absence of expected evidence is itself a finding.
@@ -133,6 +141,8 @@ confidence label, it is not an inference — leave it out.)
 - **Every figure carries its own page's qualifiers.** No as-reported-vs-constant-currency stripped off, no count fused from two events, no progress claim without its direction of travel.
 - **Facts are weighted, not just sourced.** Decision-changing observations are marked as such; facts of very different consequence are not presented as peers.
 - **Reachable public records were pulled, not deferred.** A paywalled register filing or a public analyst page is researched, not labelled "data-room only".
+- **The subject's own materials are tagged as claims, not laundered into findings.** Nothing load-bearing rests solely on the subject's own deck/site/memo; where no independent source exists, the file says so as an evidence limit.
+- **No cross-market proxy is presented as a number for this market.** A proxy is labelled a proxy with why it may not transfer; no order-of-magnitude "range" stands in for a real figure.
 - **Plain English.** Write each sentence the way you would say it out loud to a colleague. Use a real subject — a person, a team, a company, a document — not an abstract noun as the thing acting. Say who did what, in normal order. No phrasing written for effect. If a sentence needs a second read, rewrite it.
 
 ## Return
