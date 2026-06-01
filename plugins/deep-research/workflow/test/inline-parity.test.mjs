@@ -15,16 +15,15 @@ const wfSrc = readFileSync(join(here, '..', 'deep-research.workflow.js'), 'utf8'
 // Slice the inline core block out of the workflow source and evaluate it into
 // an isolated module namespace, then compare behavior to the real module.
 function loadInlineCore() {
-  const start = wfSrc.indexOf("const NO = 'no'");
-  const end = wfSrc.indexOf('function roadmapToMarkdown');
-  assert.ok(start > -1 && end > start, 'inline core block not found in workflow');
-  // include roadmapToMarkdown too (ends before the SCHEMAS banner)
+  const start = wfSrc.indexOf('function dirId');
+  assert.ok(start > -1, 'inline core block not found in workflow');
+  // the inline block ends before the SCHEMAS banner
   const endBanner = wfSrc.indexOf('// SCHEMAS');
   const block = wfSrc.slice(start, endBanner);
   // expose the functions by appending a return of the ones we test
   const factory = new Function(`
     ${block}
-    return { loadRoadmap, assignWorkers, applyScores, addOrReopenDirection, isConverged, isCovered, hasFailedStance, dirId, normName };
+    return { loadRoadmap, assignWorkers, applyScores, addOrReopenDirection, shouldStop, isCovered, hasFailedStance, dirId, normName };
   `);
   return factory();
 }
@@ -50,7 +49,7 @@ test('inline assignWorkers matches module on a mixed roadmap', () => {
   );
 });
 
-test('inline applyScores + isConverged match the module', () => {
+test('inline applyScores + shouldStop match the module', () => {
   const seedDirs = [{ name: 'A' }];
   const rm = core.loadRoadmap(seedDirs);
   const ri = inline.loadRoadmap(seedDirs);
@@ -60,8 +59,9 @@ test('inline applyScores + isConverged match the module', () => {
   ];
   core.applyScores(rm, scored);
   inline.applyScores(ri, scored.map((s) => ({ ...s, dirId: ri.dirs[0].id })));
-  assert.equal(inline.isConverged(ri, 2, 0), core.isConverged(rm, 2, 0));
-  assert.equal(inline.isConverged(ri, 2, 0), true);
+  assert.equal(rm.dirs[0].status, ri.dirs[0].status); // both 'covered'
+  assert.equal(inline.shouldStop(2, 5), core.shouldStop(2, 5)); // both false — cap not reached
+  assert.equal(inline.shouldStop(5, 5), true);
 });
 
 test('inline normName + dedup match the module', () => {

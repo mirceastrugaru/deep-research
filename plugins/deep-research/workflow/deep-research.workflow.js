@@ -14,81 +14,232 @@ export const meta = {
 // The sandbox cannot import; this is a verbatim copy of the tested module.
 // =============================================================================
 
-const NO = 'no', YES = 'yes', FAILED = 'FAILED_NEEDS_RERUN'
-
 function dirId(name, salt = '') {
-  let h = 0x811c9dc5
-  const s = `${name} ${salt}`
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0 }
-  return 'd-' + h.toString(16).padStart(8, '0').slice(0, 6)
+  let h = 0x811c9dc5;
+  const s = name + ' ' + salt;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return 'd-' + h.toString(16).padStart(8, '0').slice(0, 6);
 }
+
+// ---- Roadmap model -----------------------------------------------------------
+
+// coverage stance values
+const NO = 'no';
+const YES = 'yes';
+const FAILED = 'FAILED_NEEDS_RERUN';
+
+// Build the in-memory roadmap from the intake config's starting directions.
 function loadRoadmap(directions) {
-  return { dirs: directions.map((d, i) => ({
-    id: d.id || dirId(d.name, String(i)), name: d.name, note: d.note || '',
-    parent: d.parent || '-', status: 'open', supportive: NO, adversarial: NO,
-  })) }
+  return {
+    dirs: directions.map((d, i) => ({
+      id: d.id || dirId(d.name, String(i)),
+      name: d.name,
+      note: d.note || '',
+      parent: d.parent || '-',
+      depth: d.depth || 0, // 0 = seed/root; parent depth + 1 for a child
+      status: 'open', // open | covered | saturated | closed | killed
+      supportive: NO,
+      adversarial: NO,
+    })),
+  };
 }
-function findDir(roadmap, id) { return roadmap.dirs.find((d) => d.id === id) }
-function isCovered(d) { return d.supportive === YES && d.adversarial === YES }
-function hasFailedStance(d) { return d.supportive === FAILED || d.adversarial === FAILED }
+
+function findDir(roadmap, id) {
+  return roadmap.dirs.find((d) => d.id === id);
+}
+
+// A direction is covered once BOTH stances are yes. A FAILED stance never counts
+// toward covered. killed/saturated directions are not "open work".
+function isCovered(d) {
+  return d.supportive === YES && d.adversarial === YES;
+}
+
+function hasFailedStance(d) {
+  return d.supportive === FAILED || d.adversarial === FAILED;
+}
+
+// ---- Worker assignment (SKILL.md Step 3 priority order, deterministic) -------
+//
+// Priority, highest first (matches the round-cap/tree model in SKILL.md):
+//   1. FAILED_NEEDS_RERUN stances — known holes, re-run before anything new.
+//   2. Unstarted stances (no) on directions with NEITHER stance started.
+//   3. Single-stance directions — one stance settled, the other unstarted.
+//   4. Deepen the tree — child directions (depth > 0) the judge spawned, ranked
+//      shallower-depth first so the tree widens before any branch runs deep.
+//   5. Saturated / closed directions — lowest; re-touch only if nothing above.
+// Split stances evenly across the round; fill remaining slots down the order.
+
 function assignWorkers(roadmap, workerCount) {
-  const live = roadmap.dirs.filter((d) => d.status !== 'killed')
-  const slots = []
-  const want = (d, stance) => { const v = d[stance]; return v === NO || v === FAILED }
-  for (const d of live) for (const stance of ['supportive', 'adversarial'])
-    if (d[stance] === FAILED) slots.push({ dirId: d.id, stance, prio: 1 })
-  for (const d of live) if (d.supportive === NO && d.adversarial === NO) {
-    slots.push({ dirId: d.id, stance: 'supportive', prio: 2 })
-    slots.push({ dirId: d.id, stance: 'adversarial', prio: 2 })
-  }
+  const live = roadmap.dirs.filter((d) => d.status !== 'killed' && d.status !== 'closed');
+
+  const slots = []; // {dirId, stance, prio, depth}
+  const want = (d, stance) => {
+    const v = d[stance];
+    return v === NO || v === FAILED;
+  };
+
+  // Bucket 1: failed stances.
   for (const d of live) {
-    if (d.supportive === YES && d.adversarial === NO) slots.push({ dirId: d.id, stance: 'adversarial', prio: 3 })
-    else if (d.adversarial === YES && d.supportive === NO) slots.push({ dirId: d.id, stance: 'supportive', prio: 3 })
+    for (const stance of ['supportive', 'adversarial']) {
+      if (d[stance] === FAILED) slots.push({ dirId: d.id, stance, prio: 1, depth: d.depth });
+    }
   }
-  for (const d of live) if (d.status === 'saturated')
-    for (const stance of ['supportive', 'adversarial']) if (want(d, stance)) slots.push({ dirId: d.id, stance, prio: 4 })
-  const seen = new Map()
-  for (const s of slots) { const key = `${s.dirId}:${s.stance}`; if (!seen.has(key) || seen.get(key).prio > s.prio) seen.set(key, s) }
-  const ordered = [...seen.values()].sort((a, b) => a.prio - b.prio)
-  return ordered.slice(0, workerCount).map(({ dirId, stance }, i) => ({ dirId, stance, agentK: i + 1 }))
+  // Bucket 2: directions with neither stance started (seeds first via depth sort).
+  for (const d of live) {
+    if (d.supportive === NO && d.adversarial === NO && (d.depth || 0) === 0) {
+      slots.push({ dirId: d.id, stance: 'supportive', prio: 2, depth: 0 });
+      slots.push({ dirId: d.id, stance: 'adversarial', prio: 2, depth: 0 });
+    }
+  }
+  // Bucket 3: single-stance directions (one settled yes, other unstarted no).
+  for (const d of live) {
+    if (d.supportive === YES && d.adversarial === NO) {
+      slots.push({ dirId: d.id, stance: 'adversarial', prio: 3, depth: d.depth });
+    } else if (d.adversarial === YES && d.supportive === NO) {
+      slots.push({ dirId: d.id, stance: 'supportive', prio: 3, depth: d.depth });
+    }
+  }
+  // Bucket 4: deepen the tree — unstarted child directions (depth > 0).
+  for (const d of live) {
+    if ((d.depth || 0) > 0 && d.supportive === NO && d.adversarial === NO) {
+      slots.push({ dirId: d.id, stance: 'supportive', prio: 4, depth: d.depth });
+      slots.push({ dirId: d.id, stance: 'adversarial', prio: 4, depth: d.depth });
+    }
+  }
+  // Bucket 5: saturated directions — re-touch lowest priority.
+  for (const d of live) {
+    if (d.status === 'saturated') {
+      for (const stance of ['supportive', 'adversarial']) {
+        if (want(d, stance)) slots.push({ dirId: d.id, stance, prio: 5, depth: d.depth });
+      }
+    }
+  }
+
+  // De-dupe (a stance could be in two buckets): keep best prio.
+  const seen = new Map();
+  for (const s of slots) {
+    const key = `${s.dirId}:${s.stance}`;
+    if (!seen.has(key) || seen.get(key).prio > s.prio) seen.set(key, s);
+  }
+  // Order by priority, then shallower depth first (widen the tree before deepening).
+  const ordered = [...seen.values()].sort((a, b) => a.prio - b.prio || (a.depth || 0) - (b.depth || 0));
+
+  // Take up to workerCount, then balance stances within the taken set by
+  // walking the ordered list and preferring to keep supportive/adversarial even.
+  const taken = ordered.slice(0, workerCount);
+  return taken.map(({ dirId, stance }, i) => ({
+    dirId,
+    stance,
+    agentK: i + 1,
+  }));
 }
+
+// ---- Apply this round's scores to the roadmap (deterministic) ----------------
+//
+// scored: [{ dirId, stance, score, failed }]  (failed = hard-gate fail, score 0)
+// A passing stance (score > 0) -> yes. A hard-gate failure -> FAILED_NEEDS_RERUN.
 function applyScores(roadmap, scored) {
-  for (const s of scored) { const d = findDir(roadmap, s.dirId); if (!d) continue; d[s.stance] = s.score > 0 ? YES : FAILED }
+  for (const s of scored) {
+    const d = findDir(roadmap, s.dirId);
+    if (!d) continue;
+    if (s.score > 0) d[s.stance] = YES;
+    else d[s.stance] = FAILED;
+  }
+  // Recompute status for each live direction.
   for (const d of roadmap.dirs) {
-    if (d.status === 'killed') continue
-    if (hasFailedStance(d)) d.status = 'open'
-    else if (isCovered(d)) d.status = d.status === 'saturated' ? 'saturated' : 'covered'
+    if (d.status === 'killed') continue;
+    if (hasFailedStance(d)) {
+      d.status = 'open'; // never covered/saturated while a stance failed
+    } else if (isCovered(d)) {
+      d.status = d.status === 'saturated' ? 'saturated' : 'covered';
+    }
   }
 }
+
+// Normalize a direction name for dedup: lowercase, collapse whitespace, strip
+// trailing parenthetical tags and punctuation the model varies between rounds.
 function normName(name) {
-  return String(name || '').toLowerCase().replace(/\([^)]*\)/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim()
+  return String(name || '')
+    .toLowerCase()
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
 }
+
+// Add a brand-new direction proposed by the synthesizer (or a Phase-D closer).
+// reopen=true resets coverage on an existing direction (Phase-D fix for issue A).
+// Dedup is by id first, then by normalized name — the synthesizer re-proposes the
+// same gap across rounds, so a name match must NOT create a duplicate direction.
 function addOrReopenDirection(roadmap, { id, name, note, parent }, reopen = false) {
-  let existing = id ? findDir(roadmap, id) : null
-  if (!existing && name) { const key = normName(name); existing = roadmap.dirs.find((d) => normName(d.name) === key) }
+  let existing = id ? findDir(roadmap, id) : null;
+  if (!existing && name) {
+    const key = normName(name);
+    existing = roadmap.dirs.find((d) => normName(d.name) === key);
+  }
   if (existing) {
-    if (reopen) { existing.supportive = NO; existing.adversarial = NO; existing.status = 'open'; if (note) existing.note = note }
-    return existing
+    if (reopen) {
+      existing.supportive = NO;
+      existing.adversarial = NO;
+      existing.status = 'open';
+      if (note) existing.note = note;
+    }
+    return existing;
   }
-  const d = { id: id || dirId(name, String(roadmap.dirs.length)), name, note: note || '', parent: parent || '-', status: 'open', supportive: NO, adversarial: NO }
-  roadmap.dirs.push(d)
-  const active = roadmap.dirs.filter((x) => x.status !== 'killed')
-  if (active.length > 15) { const victim = roadmap.dirs.find((x) => x.status === 'covered' && !hasFailedStance(x)); if (victim) victim.status = 'killed' }
-  return d
+  const parentDir = parent ? findDir(roadmap, parent) : null;
+  const d = {
+    id: id || dirId(name, String(roadmap.dirs.length)),
+    name,
+    note: note || '',
+    parent: parent || '-',
+    depth: parentDir ? (parentDir.depth || 0) + 1 : 0,
+    status: 'open',
+    supportive: NO,
+    adversarial: NO,
+  };
+  roadmap.dirs.push(d);
+  // Cap at ~15 active directions: drop lowest-value killed/covered overflow.
+  const active = roadmap.dirs.filter((x) => x.status !== 'killed');
+  if (active.length > 15) {
+    // prefer to kill the oldest covered direction with no failed stance
+    const victim = roadmap.dirs.find(
+      (x) => x.status === 'covered' && !hasFailedStance(x)
+    );
+    if (victim) victim.status = 'killed';
+  }
+  return d;
 }
-function isConverged(roadmap, dryRounds, openPhaseDFlags) {
-  const live = roadmap.dirs.filter((d) => d.status !== 'killed')
-  const allCovered = live.length > 0 && live.every((d) => isCovered(d) && !hasFailedStance(d))
-  return allCovered && dryRounds >= 2 && openPhaseDFlags === 0
+
+// ---- Stop condition (SKILL.md Step 4) ---------------------------------------
+//
+// The round cap is the ONLY stop. There is no early "converged" exit: the loop
+// does not stop because coverage looks complete or because a round added no new
+// directions. The run explores for the full budget of rounds, then stops. This
+// matches the 1.6+ tree model — the judge branches the tree each round; the run
+// length is exactly round_cap, set at intake.
+function shouldStop(round, roundCap) {
+  return round >= roundCap;
 }
+
+// ---- Markdown flush (legibility + cross-session resume backstop) -------------
+
 function roadmapToMarkdown(roadmap) {
-  const lines = ['# Roadmap', '']
+  const lines = ['# Roadmap', ''];
   for (const d of roadmap.dirs) {
-    lines.push(`## ${d.id} — ${d.name}`, `status: ${d.status}`, `parent: ${d.parent}`)
-    const passing = d.supportive === YES || d.adversarial === YES ? YES : NO
-    lines.push(`coverage: supportive=${d.supportive} adversarial=${d.adversarial} passing=${passing}`, `note: ${d.note}`, '')
+    lines.push(`## ${d.id} — ${d.name}`);
+    lines.push(`status: ${d.status}`);
+    lines.push(`parent: ${d.parent}`);
+    lines.push(`depth: ${d.depth || 0}`);
+    const passing = d.supportive === YES || d.adversarial === YES ? YES : NO;
+    lines.push(
+      `coverage: supportive=${d.supportive} adversarial=${d.adversarial} passing=${passing}`
+    );
+    lines.push(`note: ${d.note}`);
+    lines.push('');
   }
-  return lines.join('\n')
+  return lines.join('\n');
 }
 
 // =============================================================================
@@ -240,19 +391,19 @@ each), and phaseDFlags (empty if the deliverable is complete and self-consistent
 // The script can't write files (sandbox), so this hands an agent the exact bytes
 // to write — no judgment, pure I/O. Keeps state.md / roadmap.md / log.md current
 // on disk for legibility and cross-session resume.
-function stateMarkdown(cfg, round, dryRounds, converged) {
+function stateMarkdown(cfg, round, atCap) {
   return ['# State', `goal: ${cfg.goal}`, `audience: ${cfg.audience}`,
     `working_dir: ${cfg.workingDir}`, `round: ${round}`, `round_cap: ${cfg.roundCap}`,
-    `worker_count: ${cfg.workerCount}`, `rounds_without_new_directions: ${dryRounds}`,
-    `converged: ${converged}`, ''].join('\n')
+    `worker_count: ${cfg.workerCount}`,
+    `converged: ${atCap}`, ''].join('\n') // "converged" here means "loop finished" (hit the cap)
 }
 function logLine(round, scored, synth) {
   const scores = scored.map((s) => `${s.dirId}/${s.stance}=${s.score}${s.failed ? ' (FAIL)' : ''}`).join(', ')
   const flags = (synth.phaseDFlags || []).map((f) => `${f.kind}: ${f.description}`).join('; ') || 'none'
   return `## Round ${round}\nscores: ${scores}\nsynthesis: ${synth.wordCount} words\nphase-D flags: ${flags}\n`
 }
-function flushPrompt(cfg, round, dryRounds, converged, roadmap, scored, synth) {
-  const state = stateMarkdown(cfg, round, dryRounds, converged)
+function flushPrompt(cfg, round, atCap, roadmap, scored, synth) {
+  const state = stateMarkdown(cfg, round, atCap)
   const rm = roadmapToMarkdown(roadmap)
   const line = logLine(round, scored, synth)
   return `Write three files exactly as given — no edits, no commentary, this is pure I/O. Then return the single word "flushed".
@@ -292,15 +443,16 @@ const roadmap = loadRoadmap(cfg.directions || [])
 const dirName = (id) => (findDir(roadmap, id) || {}).name || id
 const dirNote = (id) => (findDir(roadmap, id) || {}).note || ''
 
-let round = 0, dryRounds = 0, converged = false
+let round = 0
 const summary = []
 
-while (!converged && round < cfg.roundCap) {
+// The round cap is the ONLY stop (1.6+ tree model). No convergence exit.
+while (round < cfg.roundCap) {
   round++
   log(`Round ${round}/${cfg.roundCap} — assigning workers`)
 
   const assignments = assignWorkers(roadmap, cfg.workerCount)
-  if (assignments.length === 0) { log('No open stances to assign; stopping.'); break }
+  if (assignments.length === 0) { log('No open stances to assign; stopping early.'); break }
   log(`Round ${round}: spawning ${assignments.length} workers`)
 
   // ---- RESEARCH: parallel fan-out ----
@@ -327,9 +479,10 @@ while (!converged && round < cfg.roundCap) {
     agentType: SYNTHESIZER, schema: SYNTH_SCHEMA,
   })
 
-  // ---- CURATE: plain code on returned data (issues A & C vanish here) ----
-  // Count only GENUINELY-new directions: a re-proposed gap dedups to an existing
-  // direction and must not reset the dry-round counter (or the loop never ends).
+  // ---- CURATE: the judge's proposed directions BRANCH the tree (parented as
+  // children, depth+1). Phase-D flags become directions too. No convergence gate;
+  // the run keeps exploring until the round cap. Dedup by name avoids re-adding
+  // the same gap across rounds.
   const before = roadmap.dirs.length
   for (const nd of synth.newDirections || []) addOrReopenDirection(roadmap, nd)
   for (const flag of synth.phaseDFlags || []) {
@@ -337,23 +490,20 @@ while (!converged && round < cfg.roundCap) {
     addOrReopenDirection(roadmap, { id: c.reopenId, name: c.name, note: c.note }, Boolean(c.reopenId))
   }
   const added = roadmap.dirs.length - before
-  const openFlags = (synth.phaseDFlags || []).length
-
-  dryRounds = added > 0 ? 0 : dryRounds + 1
-  converged = isConverged(roadmap, dryRounds, openFlags)
+  const atCap = shouldStop(round, cfg.roundCap)
 
   // ---- FLUSH: write state.md / roadmap.md / log.md to disk for legibility +
   // cross-session resume. The sandbox can't write files, so a tiny agent does it.
-  await agent(flushPrompt(cfg, round, dryRounds, converged, roadmap, scored, synth), {
+  await agent(flushPrompt(cfg, round, atCap, roadmap, scored, synth), {
     label: `flush:round-${round}`, phase: 'Synthesize', agentType: SCORER,
   }).catch(() => log(`Round ${round}: state flush failed (non-fatal)`))
 
-  summary.push({ round, workers: assignments.length, scores: scored.map((s) => s.score), wordCount: synth.wordCount, newDirections: added, openPhaseDFlags: openFlags, converged })
-  log(`Round ${round} done — ${added} new directions, ${openFlags} open flags, converged=${converged}`)
+  summary.push({ round, workers: assignments.length, scores: scored.map((s) => s.score), wordCount: synth.wordCount, newDirections: added })
+  log(`Round ${round} done — ${added} new directions added to the tree`)
 }
 
 return {
-  converged, rounds: round, workingDir: cfg.workingDir,
+  finished: true, rounds: round, workingDir: cfg.workingDir,
   roadmap: roadmapToMarkdown(roadmap),
   summary,
 }

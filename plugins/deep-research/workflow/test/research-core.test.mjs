@@ -10,7 +10,7 @@ import {
   applyScores,
   addOrReopenDirection,
   normName,
-  isConverged,
+  shouldStop,
   roadmapToMarkdown,
   stateToMarkdown,
   NO,
@@ -172,42 +172,46 @@ test('reopen resets a covered direction back to no/no/open (Phase-D closer)', ()
   assert.equal(r.dirs[0].status, 'open');
 });
 
-// ---- convergence (all three conditions) -------------------------------------
+// ---- stop condition (round cap is the only stop — 1.6+ tree model) ----------
 
-test('not converged while any direction is uncovered', () => {
-  const r = seed(['A', 'B']);
-  applyScores(r, [
-    { dirId: r.dirs[0].id, stance: 'supportive', score: 2, failed: false },
-    { dirId: r.dirs[0].id, stance: 'adversarial', score: 2, failed: false },
-  ]);
-  assert.equal(isConverged(r, 2, 0), false); // B still open
+test('shouldStop is false until the round reaches the cap', () => {
+  assert.equal(shouldStop(1, 5), false);
+  assert.equal(shouldStop(4, 5), false);
+  assert.equal(shouldStop(5, 5), true);
+  assert.equal(shouldStop(6, 5), true);
 });
 
-test('not converged while a Phase-D flag is open, even if fully covered', () => {
+test('a fully-covered roadmap does NOT stop early — only the cap stops', () => {
+  // The whole point of the 1.6 change: coverage complete is not a stop.
   const r = seed(['A']);
   applyScores(r, [
     { dirId: r.dirs[0].id, stance: 'supportive', score: 2, failed: false },
     { dirId: r.dirs[0].id, stance: 'adversarial', score: 2, failed: false },
   ]);
-  assert.equal(isConverged(r, 2, 1), false); // one open flag blocks it
-  assert.equal(isConverged(r, 2, 0), true);
+  assert.equal(r.dirs[0].status, 'covered');
+  assert.equal(shouldStop(2, 5), false); // still 3 rounds of budget left
 });
 
-test('not converged until 2 dry rounds even if covered and no flags', () => {
-  const r = seed(['A']);
-  applyScores(r, [
-    { dirId: r.dirs[0].id, stance: 'supportive', score: 2, failed: false },
-    { dirId: r.dirs[0].id, stance: 'adversarial', score: 2, failed: false },
-  ]);
-  assert.equal(isConverged(r, 1, 0), false);
-  assert.equal(isConverged(r, 2, 0), true);
+// ---- tree deepening ----------------------------------------------------------
+
+test('a judge-spawned child gets depth = parent depth + 1', () => {
+  const r = seed(['A']); // depth 0
+  const child = addOrReopenDirection(r, { name: 'child of A', parent: r.dirs[0].id });
+  assert.equal(child.depth, 1);
+  const grandchild = addOrReopenDirection(r, { name: 'child of child', parent: child.id });
+  assert.equal(grandchild.depth, 2);
 });
 
-test('a FAILED stance blocks convergence (issue: discarded hard-gate fail)', () => {
+test('assignment widens the tree before deepening (shallower depth first)', () => {
   const r = seed(['A']);
-  r.dirs[0].supportive = YES;
-  r.dirs[0].adversarial = FAILED;
-  assert.equal(isConverged(r, 5, 0), false);
+  // A fully covered; it has a depth-1 child and a depth-2 grandchild, both unstarted.
+  r.dirs[0].supportive = YES; r.dirs[0].adversarial = YES; r.dirs[0].status = 'covered';
+  const child = addOrReopenDirection(r, { name: 'child', parent: r.dirs[0].id });
+  const grand = addOrReopenDirection(r, { name: 'grand', parent: child.id });
+  const a = assignWorkers(r, 2);
+  // both slots should go to the shallower child (depth 1), not the grandchild (depth 2)
+  assert.ok(a.every((s) => s.dirId === child.id), 'shallower child assigned first');
+  assert.ok(a.every((s) => s.dirId !== grand.id), 'grandchild deferred');
 });
 
 // ---- markdown flush ----------------------------------------------------------
@@ -227,70 +231,42 @@ test('stateToMarkdown round-trips the loop counters', () => {
     roundCap: 5,
     workerCount: 4,
   };
-  const md = stateToMarkdown(cfg, 3, 1, false);
+  const md = stateToMarkdown(cfg, 3, false); // round 3, not yet at cap
   assert.match(md, /round: 3/);
-  assert.match(md, /rounds_without_new_directions: 1/);
+  assert.match(md, /round_cap: 5/);
   assert.match(md, /converged: false/);
+  assert.match(stateToMarkdown(cfg, 5, true), /converged: true/); // at cap
 });
 
 // ---- end-to-end logic simulation (no API) -----------------------------------
-// Drives the full deterministic loop with a stub "judge" to prove the loop
-// converges and terminates correctly without ever calling a model.
+// Drives the full deterministic loop with a stub judge to prove it runs exactly
+// round_cap rounds (the only stop) and never calls a model.
 
-test('full deterministic loop converges and terminates', () => {
-  const cfg = {
-    goal: 'g',
-    audience: 'a',
-    workingDir: '/tmp/x',
-    roundCap: 5,
-    workerCount: 4,
-  };
+test('the loop runs exactly round_cap rounds, never stopping early', () => {
+  const cfg = { goal: 'g', audience: 'a', workingDir: '/tmp/x', roundCap: 5, workerCount: 4 };
   const roadmap = seed(['A', 'B']);
   let round = 0;
-  let dry = 0;
-  let converged = false;
-
-  while (!converged && round < cfg.roundCap) {
+  while (!shouldStop(round, cfg.roundCap)) {
     round++;
     const assignments = assignWorkers(roadmap, cfg.workerCount);
-    // stub judge: every worker passes; no new directions; no flags.
-    const scored = assignments.map((a) => ({
-      dirId: a.dirId,
-      stance: a.stance,
-      score: 3,
-      failed: false,
-    }));
+    if (assignments.length === 0) break; // ran out of stances before the cap
+    // stub judge: every worker passes; spawn one child each round to keep the tree alive.
+    const scored = assignments.map((a) => ({ dirId: a.dirId, stance: a.stance, score: 3, failed: false }));
     applyScores(roadmap, scored);
-    const newDirs = 0; // stub: no new directions
-    dry = newDirs ? 0 : dry + 1;
-    converged = isConverged(roadmap, dry, 0);
+    addOrReopenDirection(roadmap, { name: `child round ${round}`, parent: roadmap.dirs[0].id });
   }
-
-  assert.equal(converged, true);
-  assert.ok(round <= cfg.roundCap);
-  // A and B both covered
-  assert.ok(roadmap.dirs.every((d) => d.status === 'covered'));
+  assert.equal(round, 5); // ran the full budget, not stopped early by coverage
 });
 
-test('loop respects the round cap when it never converges', () => {
+test('a never-passing run still stops exactly at the cap', () => {
   const cfg = { roundCap: 3, workerCount: 2 };
   const roadmap = seed(['A']);
   let round = 0;
-  let dry = 0;
-  let converged = false;
-  while (!converged && round < cfg.roundCap) {
+  while (!shouldStop(round, cfg.roundCap)) {
     round++;
     const assignments = assignWorkers(roadmap, cfg.workerCount);
-    // stub judge: every worker HARD-FAILS -> never converges
-    const scored = assignments.map((a) => ({
-      dirId: a.dirId,
-      stance: a.stance,
-      score: 0,
-      failed: true,
-    }));
+    const scored = assignments.map((a) => ({ dirId: a.dirId, stance: a.stance, score: 0, failed: true }));
     applyScores(roadmap, scored);
-    converged = isConverged(roadmap, (dry += 1), 0);
   }
-  assert.equal(converged, false);
-  assert.equal(round, 3); // stopped at cap
+  assert.equal(round, 3); // stopped at cap regardless of scores
 });
