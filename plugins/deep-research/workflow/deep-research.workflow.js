@@ -406,15 +406,15 @@ function flushPrompt(cfg, round, atCap, roadmap, scored, synth) {
   const state = stateMarkdown(cfg, round, atCap)
   const rm = roadmapToMarkdown(roadmap)
   const line = logLine(round, scored, synth)
-  return `Write three files exactly as given — no edits, no commentary, this is pure I/O. Then return the single word "flushed".
+  return `Use the Write tool to write three files exactly as given — no edits, no commentary, pure I/O. Create each file if it does not exist; replace its contents if it does. Then return the single word "flushed".
 
-1. OVERWRITE ${cfg.workingDir}/state.md with exactly:
+1. WRITE ${cfg.workingDir}/state.md (create or replace) with exactly:
 ${state}
 
-2. OVERWRITE ${cfg.workingDir}/roadmap.md with exactly:
+2. WRITE ${cfg.workingDir}/roadmap.md (create or replace) with exactly:
 ${rm}
 
-3. APPEND to ${cfg.workingDir}/log.md exactly this block (read the file first, then write its existing contents followed by this block; if the file is empty, write "# Research log\n\n" then this block):
+3. APPEND to ${cfg.workingDir}/log.md this block (Read the file if it exists, then Write its existing contents followed by this block; if it does not exist or is empty, Write "# Research log\n\n" then this block):
 ${line}`
 }
 
@@ -494,8 +494,9 @@ while (round < cfg.roundCap) {
 
   // ---- FLUSH: write state.md / roadmap.md / log.md to disk for legibility +
   // cross-session resume. The sandbox can't write files, so a tiny agent does it.
+  // Must be a WRITER agent — the scorer is read-only (no Write tool).
   await agent(flushPrompt(cfg, round, atCap, roadmap, scored, synth), {
-    label: `flush:round-${round}`, phase: 'Synthesize', agentType: SCORER,
+    label: `flush:round-${round}`, phase: 'Synthesize', agentType: cfg.flushAgent || 'general-purpose',
   }).catch(() => log(`Round ${round}: state flush failed (non-fatal)`))
 
   summary.push({ round, workers: assignments.length, scores: scored.map((s) => s.score), wordCount: synth.wordCount, newDirections: added })
