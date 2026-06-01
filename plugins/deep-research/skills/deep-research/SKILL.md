@@ -5,7 +5,7 @@ description: Multi-agent iterative research. Use when the user has a research go
 
 # Deep Research
 
-You run a multi-agent research loop from THIS main session. You do not do the research yourself — you orchestrate. Each round you spawn several research workers (via the Agent tool, all in one message so they run in parallel — see Step 3), then one judge, then check the round cap. The deliverable is a readable, sourced document for a stated audience.
+You run a multi-agent research loop. You do not do the research yourself — you orchestrate. The loop runs either as a background Workflow (preferred — Step 3a) or inline from this session (fallback — Step 3b). Each round runs several research workers in parallel, then scoring and synthesis, then branches the direction tree, and the run stops at the round cap. The deliverable is a readable, sourced document for a stated audience.
 
 ## Hard rules
 
@@ -93,7 +93,45 @@ Direction IDs are `d-` + 6 hex chars, stable for the life of the run. Seed direc
 
 ## Step 3 — The round loop
 
-Each iteration is one round. Before starting a round, check the stop condition in Step 4 — if `round` has reached `round_cap`, do not start another round; go to Step 5 (final brief). Otherwise run the round:
+The loop runs ONE of two ways. Prefer the **workflow path** (Step 3a) when the Workflow tool is available — it runs the whole loop deterministically in the background. Fall back to the **inline path** (Step 3b) otherwise. Both produce the same on-disk deliverables (`synthesis.md`, `evidence.md`, `roadmap.md`, `log.md`); Step 5 onward is identical.
+
+### Step 3a — Workflow path (preferred)
+
+The round loop ships as a deterministic background workflow at
+`${CLAUDE_PLUGIN_ROOT}/workflow/deep-research.workflow.js`. It owns round
+numbering, worker assignment, scoring, synthesis, and tree-branching across every
+round — you do NOT spawn workers or the judge yourself.
+
+Use this path when the Workflow tool can be invoked (the user has opted into
+workflows, or you ask them to and they agree). If it is not available, use the
+inline fallback in Step 3b.
+
+1. **Resolve the script path.** Run `echo "${CLAUDE_PLUGIN_ROOT}/workflow/deep-research.workflow.js"` to get the literal absolute path — environment variables do not expand inside tool arguments.
+2. **Call the Workflow tool** with `scriptPath` set to that path and `args` set to the config you built from intake:
+
+   ```json
+   {
+     "goal": "<goal>",
+     "audience": "<audience>",
+     "workingDir": "<absolute working dir>",
+     "roundCap": <round cap>,
+     "workerCount": <worker count>,
+     "directions": [ { "name": "<direction>", "note": "<one line>" } ],
+     "sourcesDir": "<absolute sources dir, or omit if none>",
+     "scorerAgent": "deep-research:research-scorer",
+     "synthesizerAgent": "deep-research:research-synthesizer"
+   }
+   ```
+
+   The working directory must already hold empty `synthesis.md`, `evidence.md`,
+   `log.md` and a `findings/` directory (created in Step 2). `directions` is the
+   seed list from intake; the workflow grows the tree from there.
+3. **Tell the user how to watch it** (see "How the user can watch a run" below), then let it run. It runs in the background and notifies you when done. It runs exactly `roundCap` rounds — the round cap is the only stop. Each round it spawns the workers in parallel, scores each findings file, rewrites `synthesis.md` + `evidence.md`, branches the direction tree, and flushes `state.md` / `roadmap.md` / `log.md`.
+4. **When it returns**, read its result object `{ finished, rounds, workingDir, roadmap, summary }`. The deliverables are on disk in `workingDir`. Go to Step 5.
+
+### Step 3b — Inline fallback
+
+Use this only when the Workflow tool is unavailable. Each iteration is one round. Before starting a round, check the stop condition in Step 4 — if `round` has reached `round_cap`, do not start another round; go to Step 5 (final brief). Otherwise run the round:
 
 1. **Set the round number.** This round's number is `state.md`'s `round` + 1 (it is 1 for the first round after init, which starts at `round: 0`). If that number would exceed `round_cap`, do not start the round — stop and go to Step 5. Otherwise write the number to `round` in `state.md` NOW, before spawning anything. Every `findings/round-<N>/...` path this round uses this number. Setting it up front is what keeps `state.md` and the `findings/` directories in sync.
 2. **Read** `roadmap.md` and `ledger.md`.
