@@ -75,6 +75,17 @@ test('fresh roadmap assigns both stances of unstarted directions (prio 2)', () =
   }
 });
 
+test('a re-run assignment is flagged isRerun so the worker is warned', () => {
+  const r = seed(['A']);
+  r.dirs[0].supportive = FAILED; // failed verification last round
+  const a = assignWorkers(r, 1);
+  assert.equal(a[0].stance, 'supportive');
+  assert.equal(a[0].isRerun, true);
+  // a fresh, never-failed assignment is not a re-run
+  const r2 = seed(['B']);
+  assert.equal(assignWorkers(r2, 1)[0].isRerun, false);
+});
+
 test('FAILED stance outranks unstarted directions', () => {
   const r = seed(['A', 'B']);
   // A.supportive failed earlier; B never started.
@@ -210,6 +221,27 @@ test('a fully-covered roadmap does NOT stop early — only the cap stops', () =>
 });
 
 // ---- tree deepening ----------------------------------------------------------
+
+test('a child links to its parent BY NAME, not just by id (live-run bug)', () => {
+  // The synthesizer returns parent as a label, not a d- id. The tree must still
+  // link and the child must get depth 1, else the tree never deepens.
+  const r = seed(['Model lineup and API of Cohere vs Mistral']);
+  const parentId = r.dirs[0].id;
+  // parent given as the NAME (what the agent actually sends), not the id
+  const child = addOrReopenDirection(r, {
+    name: 'Cohere models and pricing',
+    parent: 'Model lineup and API of Cohere vs Mistral',
+  });
+  assert.equal(child.depth, 1, 'child got depth 1 from a name-matched parent');
+  assert.equal(child.parent, parentId, 'child.parent stored as the resolved id, not the label');
+});
+
+test('an unresolvable parent label yields a depth-0 root, not a broken link', () => {
+  const r = seed(['A']);
+  const child = addOrReopenDirection(r, { name: 'orphan', parent: 'nonexistent label' });
+  assert.equal(child.depth, 0);
+  assert.equal(child.parent, '-'); // unresolved -> treated as a root, no dangling ref
+});
 
 test('a judge-spawned child gets depth = parent depth + 1', () => {
   const r = seed(['A']); // depth 0

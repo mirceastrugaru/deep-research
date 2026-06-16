@@ -130,10 +130,11 @@ function assignWorkers(roadmap, workerCount) {
   // Take up to workerCount, then balance stances within the taken set by
   // walking the ordered list and preferring to keep supportive/adversarial even.
   const taken = ordered.slice(0, workerCount);
-  return taken.map(({ dirId, stance }, i) => ({
+  return taken.map(({ dirId, stance, prio }, i) => ({
     dirId,
     stance,
     agentK: i + 1,
+    isRerun: prio === 1, // bucket 1 = a stance that failed verification before
   }));
 }
 
@@ -169,6 +170,18 @@ function normName(name) {
     .trim();
 }
 
+// Resolve a parent reference to a direction. Accepts a d- id, the parent's exact
+// name, or a normalized-name match. Returns the direction or null. This is what
+// lets a child link to its parent when the synthesizer supplies a name, not an id.
+function resolveParent(roadmap, parent) {
+  if (!parent || parent === '-') return null;
+  const byId = findDir(roadmap, parent);
+  if (byId) return byId;
+  const key = normName(parent);
+  if (!key) return null;
+  return roadmap.dirs.find((d) => normName(d.name) === key) || null;
+}
+
 // Add a brand-new direction proposed by the synthesizer (or a Phase-D closer).
 // reopen=true resets coverage on an existing direction (Phase-D fix for issue A).
 // Dedup is by id first, then by normalized name — the synthesizer re-proposes the
@@ -188,12 +201,15 @@ function addOrReopenDirection(roadmap, { id, name, note, parent }, reopen = fals
     }
     return existing;
   }
-  const parentDir = parent ? findDir(roadmap, parent) : null;
+  // Resolve parent by id first, then by normalized name. The synthesizer often
+  // returns the parent as a label ("(a) Models and API") rather than a d- id, so
+  // a name match is what actually links the tree and gives the child depth + 1.
+  const parentDir = resolveParent(roadmap, parent);
   const d = {
     id: id || dirId(name, String(roadmap.dirs.length)),
     name,
     note: note || '',
-    parent: parent || '-',
+    parent: parentDir ? parentDir.id : '-', // store the resolved id, not the label
     depth: parentDir ? (parentDir.depth || 0) + 1 : 0,
     status: 'open',
     supportive: NO,
@@ -298,7 +314,7 @@ Your stance: ${a.stance}
 
 Write your findings file to: ${path}
 ${cfg.sourcesDir ? `Source files (read-only): ${cfg.sourcesDir}` : ''}
-
+${a.isRerun ? `\nNOTE: a prior attempt at this direction+stance FAILED source verification (claims that did not trace to their cited pages, or numbers taken from aggregators/blogs instead of primary sources). Do not repeat that. For every quantitative claim, open the primary source (the vendor's own docs, pricing page, model card, filing, or release note) and quote the figure from it; if a number lives only on an aggregator or a secondary blog, label it as such or drop it. A smaller set of fully-primary-sourced facts beats a long list that fails verification.\n` : ''}
 Follow your agent protocol exactly: research in passes, structured findings file,
 observations separated from inferences, every observation sourced, contrary
 evidence recorded honestly, EVIDENCE LIMIT lines where you hit a ceiling. You
@@ -342,9 +358,12 @@ failed (true if a hard gate failed), and one gate entry per gate (gate name,
 pass/fail, one-line reason naming the specific claim).`
 }
 
-function synthPrompt(cfg, round, scoredFiles) {
+function synthPrompt(cfg, round, scoredFiles, roadmap) {
   const passing = scoredFiles.filter((s) => s.score > 0)
   const fileList = passing.map((s) => `- ${s.findingsFile} (${s.dirId}, ${s.stance}, score ${s.score})`).join('\n')
+  const dirList = (roadmap?.dirs || [])
+    .filter((d) => d.status !== 'killed')
+    .map((d) => `- ${d.id}: ${d.name}`).join('\n')
   return `You fold one round's verified findings into the deliverable. You write
 exactly TWO files — synthesis.md and evidence.md — and nothing else. Do NOT
 write, read, or curate roadmap.md; the workflow owns it. Do NOT
@@ -389,9 +408,16 @@ each UNRESOLVED flag, do not leave it as prose alone — return it in phaseDFlag
 with the specific direction that would close it (closesWith: name + note, plus
 reopenId if an existing direction should be re-opened).
 
+Existing research directions (id: name). When you propose a child direction in
+newDirections or a closesWith, set its \`parent\` to the EXACT \`d-\` id from this
+list that it deepens (copy the id verbatim, not the name); use the empty string
+only for a genuinely new top-level direction. Linking children to a real parent
+id is what grows the research tree:
+${dirList || '(none yet)'}
+
 Return the structured result as your final action: synthesisFile, evidenceFile,
-wordCount (of synthesis.md), newDirections (genuinely new threads — name + note
-each), and phaseDFlags (empty if the deliverable is complete and self-consistent).`
+wordCount (of synthesis.md), newDirections (genuinely new threads — name + note +
+parent id each), and phaseDFlags (empty if the deliverable is complete and self-consistent).`
 }
 
 // The script can't write files (sandbox), so this hands an agent the exact bytes
@@ -480,7 +506,7 @@ while (round < cfg.roundCap) {
   applyScores(roadmap, scored)
 
   // ---- SYNTHESIZE: one writer, returns metadata + Phase-D flags as data ----
-  const synth = await agent(synthPrompt(cfg, round, scored), {
+  const synth = await agent(synthPrompt(cfg, round, scored, roadmap), {
     label: `synthesize:round-${round}`, phase: 'Synthesize',
     agentType: SYNTHESIZER, schema: SYNTH_SCHEMA,
   })

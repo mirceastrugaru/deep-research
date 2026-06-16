@@ -129,10 +129,11 @@ export function assignWorkers(roadmap, workerCount) {
   // Take up to workerCount, then balance stances within the taken set by
   // walking the ordered list and preferring to keep supportive/adversarial even.
   const taken = ordered.slice(0, workerCount);
-  return taken.map(({ dirId, stance }, i) => ({
+  return taken.map(({ dirId, stance, prio }, i) => ({
     dirId,
     stance,
     agentK: i + 1,
+    isRerun: prio === 1, // bucket 1 = a stance that failed verification before
   }));
 }
 
@@ -168,6 +169,18 @@ export function normName(name) {
     .trim();
 }
 
+// Resolve a parent reference to a direction. Accepts a d- id, the parent's exact
+// name, or a normalized-name match. Returns the direction or null. This is what
+// lets a child link to its parent when the synthesizer supplies a name, not an id.
+export function resolveParent(roadmap, parent) {
+  if (!parent || parent === '-') return null;
+  const byId = findDir(roadmap, parent);
+  if (byId) return byId;
+  const key = normName(parent);
+  if (!key) return null;
+  return roadmap.dirs.find((d) => normName(d.name) === key) || null;
+}
+
 // Add a brand-new direction proposed by the synthesizer (or a Phase-D closer).
 // reopen=true resets coverage on an existing direction (Phase-D fix for issue A).
 // Dedup is by id first, then by normalized name — the synthesizer re-proposes the
@@ -187,12 +200,15 @@ export function addOrReopenDirection(roadmap, { id, name, note, parent }, reopen
     }
     return existing;
   }
-  const parentDir = parent ? findDir(roadmap, parent) : null;
+  // Resolve parent by id first, then by normalized name. The synthesizer often
+  // returns the parent as a label ("(a) Models and API") rather than a d- id, so
+  // a name match is what actually links the tree and gives the child depth + 1.
+  const parentDir = resolveParent(roadmap, parent);
   const d = {
     id: id || dirId(name, String(roadmap.dirs.length)),
     name,
     note: note || '',
-    parent: parent || '-',
+    parent: parentDir ? parentDir.id : '-', // store the resolved id, not the label
     depth: parentDir ? (parentDir.depth || 0) + 1 : 0,
     status: 'open',
     supportive: NO,
