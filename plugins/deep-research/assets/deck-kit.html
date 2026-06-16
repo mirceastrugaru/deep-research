@@ -512,10 +512,10 @@ pushCites(slides, 'Sources', [
   ]},
 ]);
 
-// Research-method slide — call pushMethod. Build the data from the run's
-// ledger.md (round/agent/stance/score), log.md (rounds, judge notes,
-// spawned-direction counts) and roadmap.md (direction names, questions,
-// parents). pushMethod paginates if the run has many rounds.
+// Research-method slide: call pushMethod. Build the data from the run's
+// log.md (per-round scores, Phase D notes, spawned-direction counts; pivot the
+// scores by direction id for a per-direction view) and roadmap.md (direction
+// names, questions, parents). pushMethod paginates if the run has many rounds.
 pushMethod(slides, {
   kicker: 'How This Was Researched',
   headline: 'A factual headline describing the run structure.',

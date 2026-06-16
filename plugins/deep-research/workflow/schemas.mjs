@@ -90,7 +90,7 @@ export const SYNTH_SCHEMA = {
         properties: {
           kind: {
             type: 'string',
-            enum: ['recency', 'contradiction', 'reachable_fact', 'omission'],
+            enum: ['recency', 'contradiction', 'reachable_fact', 'omission', 'spine'],
           },
           description: { type: 'string' },
           closesWith: {

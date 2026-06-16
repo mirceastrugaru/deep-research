@@ -15,6 +15,7 @@
 
 import { createRequire } from 'module';
 import path from 'path';
+import { pathToFileURL } from 'url';
 import { existsSync } from 'fs';
 
 const [,, inFile, outFile] = process.argv;
@@ -51,12 +52,12 @@ function loadChromium() {
 }
 
 const chromium = loadChromium();
-const url = 'file://' + path.resolve(inFile);
+const url = pathToFileURL(path.resolve(inFile)).href; // correct on Windows too
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
 await page.goto(url, { waitUntil: 'networkidle' });
-await page.waitForTimeout(400); // let webfonts settle
+await page.waitForTimeout(1500); // let CDN webfonts settle (400ms is too short on slow links)
 await page.pdf({
   path: path.resolve(outFile),
   format: 'A4',

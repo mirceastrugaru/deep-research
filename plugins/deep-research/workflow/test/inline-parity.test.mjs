@@ -23,7 +23,7 @@ function loadInlineCore() {
   // expose the functions by appending a return of the ones we test
   const factory = new Function(`
     ${block}
-    return { loadRoadmap, assignWorkers, applyScores, addOrReopenDirection, shouldStop, isCovered, hasFailedStance, dirId, normName };
+    return { loadRoadmap, assignWorkers, applyScores, addOrReopenDirection, shouldStop, isCovered, hasFailedStance, dirId, normName, findDir, roadmapToMarkdown };
   `);
   return factory();
 }
@@ -84,4 +84,29 @@ test('inline addOrReopenDirection reopen matches the module', () => {
   inline.addOrReopenDirection(ri, { id: ri.dirs[0].id, note: 'recheck' }, true);
   assert.equal(ri.dirs[0].status, rm.dirs[0].status);
   assert.equal(ri.dirs[0].supportive, 'no');
+});
+
+test('inline findDir matches the module', () => {
+  const rm = core.loadRoadmap([{ name: 'A' }, { name: 'B' }]);
+  const ri = inline.loadRoadmap([{ name: 'A' }, { name: 'B' }]);
+  const id = rm.dirs[1].id;
+  assert.equal(inline.findDir(ri, id).name, core.findDir(rm, id).name);
+  assert.equal(inline.findDir(ri, 'nope'), undefined);
+});
+
+test('inline roadmapToMarkdown matches the module byte for byte', () => {
+  const seedDirs = [{ name: 'Alpha', note: 'first' }, { name: 'Beta', note: 'second' }];
+  const rm = core.loadRoadmap(seedDirs);
+  const ri = inline.loadRoadmap(seedDirs);
+  rm.dirs[0].supportive = 'yes'; ri.dirs[0].supportive = 'yes';
+  assert.equal(inline.roadmapToMarkdown(ri), core.roadmapToMarkdown(rm));
+});
+
+test('inline addOrReopenDirection depth + 15-cap parent guard match the module', () => {
+  const rm = core.loadRoadmap([{ name: 'A' }]);
+  const ri = inline.loadRoadmap([{ name: 'A' }]);
+  const childM = core.addOrReopenDirection(rm, { name: 'child', parent: rm.dirs[0].id });
+  const childI = inline.addOrReopenDirection(ri, { name: 'child', parent: ri.dirs[0].id });
+  assert.equal(childI.depth, childM.depth);
+  assert.equal(childI.depth, 1);
 });

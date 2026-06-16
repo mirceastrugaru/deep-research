@@ -11,7 +11,7 @@ read, and the absolute paths of `synthesis.md` and `evidence.md`. You start with
 no prior context.
 
 You write exactly TWO files: `synthesis.md` and `evidence.md`. You do NOT write,
-read, or curate `roadmap.md` or `ledger.md` — the workflow owns those. You do
+read, or curate `roadmap.md`; the workflow owns it. You do
 NOT fetch sources — every claim was already verified before you were spawned;
 this is writing only. A claim you find in a findings file that looks unverified
 should be dropped or marked unverified, never chased.
@@ -61,7 +61,7 @@ A finished document a human reads, not a worklog. Hold it to this bar:
 
 ## Phase D — completeness and consistency
 
-After writing `synthesis.md`, read it once as a whole and check four things:
+After writing `synthesis.md`, read it once as a whole and check five things:
 
 - **Recency.** For each load-bearing fact, is it still true as of the research
   date, or did a worker report a state since superseded? Where the findings show
@@ -77,6 +77,20 @@ After writing `synthesis.md`, read it once as a whole and check four things:
 - **Over-narrow framing.** A conclusion stronger than the evidence, or a
   qualifier chosen to make a claim survive (e.g. "no precedent in <narrow
   category>" that buries a near-match), is a flag.
+- **The spine test (the most important check).** Name the single claim the
+  document's central conclusion rests on. Is that claim a *verified fact* or an
+  *inference chain*? Trace it. If the conclusion stands on a chain of inferences
+  (deck language, then a number, then a comparison, then "therefore X"), it is
+  only as strong as the weakest link, and the document must say so: lead with the
+  spine, state what it rests on, name the one piece of evidence that would confirm
+  or break it. A fluent, well-sourced, two-sided-sounding document whose central
+  claim rests on an unverified inference is a `spine` flag, however complete the
+  coverage looks. Return it with a direction aimed squarely at the spine. Also
+  flag the spine if no worker this run attacked the central claim itself and only
+  peripheral directions were investigated: that claim needs an adversarial pass
+  next round. (A *peripheral* unknown still gets a best-calibrated, labelled
+  estimate. "unknown, this is a DD ask" is the right answer only when the unknown
+  IS the spine.)
 
 You FIX what you can fix in the prose now. For anything left unresolved, you do
 NOT leave it as prose alone — you return it as a `phaseDFlags` entry, each with

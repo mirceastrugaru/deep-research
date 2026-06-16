@@ -40,8 +40,9 @@ node --test
 ```
 
 No dependencies, no API. The tests cover assignment priority, score application,
-FAILED_NEEDS_RERUN handling, the three-part convergence check, the Phase-D
-reopen, a full no-API loop simulation, and inline/module parity.
+FAILED_NEEDS_RERUN handling, the round-cap stop, tree deepening, the 15-cap
+parent guard, the Phase-D reopen, a full no-API loop simulation, and
+inline/module parity.
 
 ## Run the loop
 

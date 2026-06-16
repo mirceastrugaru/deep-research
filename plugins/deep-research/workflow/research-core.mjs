@@ -199,12 +199,15 @@ export function addOrReopenDirection(roadmap, { id, name, note, parent }, reopen
     adversarial: NO,
   };
   roadmap.dirs.push(d);
-  // Cap at ~15 active directions: drop lowest-value killed/covered overflow.
+  // Cap at ~15 active directions: drop the oldest covered direction with no
+  // failed stance AND no live child (killing a parent would orphan its child and
+  // corrupt the tree, so a direction that still has a non-killed child is spared).
   const active = roadmap.dirs.filter((x) => x.status !== 'killed');
   if (active.length > 15) {
-    // prefer to kill the oldest covered direction with no failed stance
+    const hasLiveChild = (p) =>
+      roadmap.dirs.some((c) => c.parent === p.id && c.status !== 'killed');
     const victim = roadmap.dirs.find(
-      (x) => x.status === 'covered' && !hasFailedStance(x)
+      (x) => x.status === 'covered' && !hasFailedStance(x) && !hasLiveChild(x)
     );
     if (victim) victim.status = 'killed';
   }
@@ -227,7 +230,7 @@ export function shouldStop(round, roundCap) {
 export function roadmapToMarkdown(roadmap) {
   const lines = ['# Roadmap', ''];
   for (const d of roadmap.dirs) {
-    lines.push(`## ${d.id} — ${d.name}`);
+    lines.push(`## ${d.id}: ${d.name}`);
     lines.push(`status: ${d.status}`);
     lines.push(`parent: ${d.parent}`);
     lines.push(`depth: ${d.depth || 0}`);

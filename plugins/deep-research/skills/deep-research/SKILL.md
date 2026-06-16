@@ -1,30 +1,27 @@
 ---
 name: deep-research
-description: Multi-agent iterative research. Use when the user has a research goal — a question to answer, a topic to investigate, a due-diligence subject — and wants a thorough, sourced, audience-targeted document. Runs an autonomous loop of parallel research workers and a judge.
+description: Multi-agent iterative research. Use when the user has a research goal (a question to answer, a topic to investigate, a due-diligence subject) and wants a thorough, sourced, audience-targeted document. Runs an autonomous Workflow loop of parallel research workers, per-file scoring, and synthesis.
 ---
 
 # Deep Research
 
-You run a multi-agent research loop. You do not do the research yourself — you orchestrate. The loop runs either as a background Workflow (preferred — Step 3a) or inline from this session (fallback — Step 3b). Each round runs several research workers in parallel, then scoring and synthesis, then branches the direction tree, and the run stops at the round cap. The deliverable is a readable, sourced document for a stated audience.
+You run a multi-agent research loop. You do not do the research yourself; you orchestrate. After intake you hand a config to a background Workflow that runs the whole loop: each round it runs several research workers in parallel, scores their findings, synthesizes the deliverable, then branches the direction tree, and the run stops at the round cap. The deliverable is a readable, sourced document for a stated audience.
 
 ## Hard rules
 
-- You run in the MAIN session. Never fork. You must be able to spawn subagents — a forked skill cannot.
-- Research workers run in the FOREGROUND. Background subagents auto-deny permission prompts, breaking WebFetch/WebSearch.
-- Subagents start with FRESH context. They see only their spawn prompt. Put every specific (goal, direction, stance, absolute paths) into the prompt.
-- Subagents return a one-line status, not data. Every subagent writes its own output file. You and the judge read files — never parse a subagent's return text.
+- Intake and the deck/memo builders run in THIS main session. The research loop runs in the Workflow (Step 3).
+- Subagents start with FRESH context. They see only their spawn prompt. The workflow builds each prompt with every specific (goal, direction, stance, absolute paths) inside it.
 - All state is plain Markdown in the working directory. No JSON.
-- After intake, the loop runs autonomously. Intake is the only human checkpoint — do not pause for approval mid-loop.
+- After intake, the loop runs autonomously. Intake is the only human checkpoint; do not pause for approval mid-loop.
 
-## Step 0 — Resume check
+## Step 0: Resume check
 
-Before intake, check whether a run is already in progress. If the working directory is known or the user names one, read `state.md`. `round: N` means round N has STARTED (not that it finished) — `state.md` is set to the round number when that round begins, so the round number and the `findings/round-N/` directory never drift apart. Let N be `state.md`'s `round` and scan:
+Before intake, check whether a run is already in progress. If the working directory is known or the user names one, read `state.md`. `round: N` is the last round the workflow recorded; the deliverable files reflect the work through that round.
 
-- `findings/round-N/` has fewer NON-EMPTY `agent-K.md` findings files than the worker count in `state.md` → round N's research is incomplete. Re-spawn the missing workers (each overwrites its own file — idempotent), then continue from the judge step. Count only non-empty `agent-K.md` files; ignore `agent-K.scratch.md` working files and treat an empty or stub `agent-K.md` as missing — re-spawn that worker.
-- `findings/round-N/` is complete but `log.md` has no judge entry for round N → re-spawn the judge for round N.
-- `findings/round-N/` is complete and round N is judged → round N is finished; start round N+1.
+- If a finished run's files are present (a `state.md` with `converged: true`, plus `synthesis.md`), there is nothing to re-run; go to Step 5 to deliver, or offer the deck/memo.
+- If a run was interrupted (`state.md` shows a round below `round_cap`, or `synthesis.md` is empty), re-launch the workflow with the SAME config (rebuild it from `state.md`: goal, audience, working_dir, round_cap, worker_count, and the seed directions from `roadmap.md`). The workflow overwrites its own files idempotently, so a clean re-launch picks up the goal from where the deliverables stand.
 
-If no `state.md` exists anywhere relevant, this is a fresh run — go to intake. Re-invoking the skill NEVER restarts from scratch.
+If no `state.md` exists anywhere relevant, this is a fresh run; go to intake.
 
 ## Step 1 — Intake
 
@@ -36,77 +33,49 @@ Ask the user how deep the intake should be, and branch:
 
 By the end of intake you must have: the **working directory**, the **audience** for the final document, the **round cap** (default 5), the **worker count** (default 4, even, minimum 2), and the **starting directions** (3-6 broad ones).
 
-## Step 2 — Initialize the working directory
+## Step 2: Initialize the working directory
 
-Create the working directory and these files:
+Create the working directory and these empty files, then hand the directory to the workflow in Step 3. The workflow writes and maintains `state.md`, `roadmap.md`, and `log.md` itself each round; you only create the empty deliverable files and the findings directory:
 
-- `state.md` — see format below.
-- `roadmap.md` — the starting directions, each with a fresh ID.
-- `ledger.md` — empty per-direction history (headers only).
-- `evidence.md`, `synthesis.md` — empty (the judge fills them).
-- `log.md` — empty.
-- `findings/` — empty; `sources/` if the user provided source files (read-only).
+- `synthesis.md`, `evidence.md` empty (the synthesizer fills them).
+- `log.md` empty.
+- `findings/` empty. Add `sources/` (read-only) if the user provided source files; pass its path as `sourcesDir`.
 
-### state.md format
+The seed directions go into the config's `directions` array (Step 3), not a hand-written roadmap; the workflow builds `roadmap.md` from them.
+
+### state.md format (the workflow writes this; for reference)
 
 ```
 # State
 goal: <one line>
 audience: <one line>
 working_dir: <absolute path>
-round: 0
+round: <current round>
 round_cap: 5
 worker_count: 4
-rounds_without_new_directions: 0
-converged: false
+converged: <true once the round cap is reached, meaning "loop finished">
 ```
 
-### roadmap.md format
+### roadmap.md format (the workflow writes this; for reference)
 
 ```
 # Roadmap
 
-## d-a1b2c3 — <direction name>
-status: open            # open | covered | saturated | closed
+## d-a1b2c3: <direction name>
+status: open            # open | covered | saturated | closed | killed
 parent: -               # parent direction ID, or - for a seed direction
 depth: 0                # 0 for a seed/root; parent's depth + 1 for a child
 coverage: supportive=no adversarial=no passing=no
-note: <one line — why this matters / current state>
-
-## d-d4e5f6 — <direction name>
-...
+note: <one line: why this matters / current state>
 ```
 
-Each stance in the `coverage:` line is `no` (not yet investigated), `yes` (investigated and the file passed), or `FAILED_NEEDS_RERUN` (a worker investigated it but the judge scored that file 0, so the output was discarded — the stance still needs a clean run). `passing=` is `yes` once at least one stance produced a score > 0 file.
+Each stance in the `coverage:` line is `no` (not yet investigated), `yes` (investigated and the file passed), or `FAILED_NEEDS_RERUN` (a worker investigated it but the scorer gave that file 0, so the output was discarded and the stance needs a clean run). `passing=` is `yes` once at least one stance produced a score above 0. Direction IDs are `d-` plus 6 hex chars, stable for the life of the run.
 
-Direction IDs are `d-` + 6 hex chars, stable for the life of the run. Seed directions get fresh IDs at init.
+## Step 3: Run the round loop (the Workflow tool)
 
-### ledger.md format
+The round loop runs as a deterministic background workflow. You do NOT spawn workers or score findings yourself. You build a config from intake (Step 1) and hand it to the workflow script, which owns round numbering, worker assignment, scoring, synthesis, and tree-branching across every round, and writes every deliverable to disk.
 
-```
-# Ledger
-
-## d-a1b2c3 — <direction name>
-- round 1, agent-1, supportive — score 4 — findings/round-1/agent-1.md
-- round 1, agent-3, adversarial — score 0 (hard gate: evidence) — findings/round-1/agent-3.md
-```
-
-## Step 3 — The round loop
-
-The loop runs ONE of two ways. Prefer the **workflow path** (Step 3a) when the Workflow tool is available — it runs the whole loop deterministically in the background. Fall back to the **inline path** (Step 3b) otherwise. Both produce the same on-disk deliverables (`synthesis.md`, `evidence.md`, `roadmap.md`, `log.md`); Step 5 onward is identical.
-
-### Step 3a — Workflow path (preferred)
-
-The round loop ships as a deterministic background workflow at
-`${CLAUDE_PLUGIN_ROOT}/workflow/deep-research.workflow.js`. It owns round
-numbering, worker assignment, scoring, synthesis, and tree-branching across every
-round — you do NOT spawn workers or the judge yourself.
-
-Use this path when the Workflow tool can be invoked (the user has opted into
-workflows, or you ask them to and they agree). If it is not available, use the
-inline fallback in Step 3b.
-
-1. **Resolve the script path.** Run `echo "${CLAUDE_PLUGIN_ROOT}/workflow/deep-research.workflow.js"` to get the literal absolute path — environment variables do not expand inside tool arguments.
+1. **Resolve the script path.** Run `echo "${CLAUDE_PLUGIN_ROOT}/workflow/deep-research.workflow.js"` to get the literal absolute path. Environment variables do not expand inside tool arguments, so resolve it first.
 2. **Call the Workflow tool** with `scriptPath` set to that path and `args` set to the config you built from intake:
 
    ```json
@@ -123,77 +92,26 @@ inline fallback in Step 3b.
    }
    ```
 
-   The working directory must already hold empty `synthesis.md`, `evidence.md`,
-   `log.md` and a `findings/` directory (created in Step 2). `directions` is the
-   seed list from intake; the workflow grows the tree from there.
-3. **Tell the user how to watch it** (see "How the user can watch a run" below), then let it run. It runs in the background and notifies you when done. It runs exactly `roundCap` rounds — the round cap is the only stop. Each round it spawns the workers in parallel, scores each findings file, rewrites `synthesis.md` + `evidence.md`, branches the direction tree, and flushes `state.md` / `roadmap.md` / `log.md`.
+   The working directory must already hold empty `synthesis.md`, `evidence.md`, `log.md` and a `findings/` directory (created in Step 2). `directions` is the seed list from intake; the workflow grows the tree from there. The two agent fields are optional: if you omit them, the workflow runs the scorer and synthesizer on `general-purpose`. Pass the named agents when they are installed.
+3. **Tell the user how to watch it** (see "How the user can watch a run" below), then let it run. It runs in the background and notifies you when done. There is no per-round report from you: the workflow runs detached, so progress is visible only in the working-directory files, which is what you point the user at.
 4. **When it returns**, read its result object `{ finished, rounds, workingDir, roadmap, summary }`. The deliverables are on disk in `workingDir`. Go to Step 5.
 
-### Step 3b — Inline fallback
-
-Use this only when the Workflow tool is unavailable. Each iteration is one round. Before starting a round, check the stop condition in Step 4 — if `round` has reached `round_cap`, do not start another round; go to Step 5 (final brief). Otherwise run the round:
-
-1. **Set the round number.** This round's number is `state.md`'s `round` + 1 (it is 1 for the first round after init, which starts at `round: 0`). If that number would exceed `round_cap`, do not start the round — stop and go to Step 5. Otherwise write the number to `round` in `state.md` NOW, before spawning anything. Every `findings/round-<N>/...` path this round uses this number. Setting it up front is what keeps `state.md` and the `findings/` directories in sync.
-2. **Read** `roadmap.md` and `ledger.md`.
-3. **Assign directions.** Coverage-driven. A stance is settled only if its `coverage:` value is `yes`; `no` means unstarted and `FAILED_NEEDS_RERUN` means a discarded hard-gate failure. Assign in this priority order, highest first:
-   1. **`FAILED_NEEDS_RERUN` stances** — a worker investigated this stance but the judge discarded the file (score 0). It is a known hole in a direction already judged worth investigating. Re-run it before any unstarted work.
-   2. **Unstarted stances** (`no`) on directions not yet investigated.
-   3. **Single-stance directions** — one stance settled, the other unstarted.
-   4. **Deepen the tree** — child directions the judge spawned from strong findings (each `parent:` set, `depth:` > 0). These carry the tree downward; rank them by the judge's expected-value order, biased toward shallower depth first so the tree widens before any one branch runs deep.
-   5. **Saturated / closed directions** (covered with no pending children, or `closed: dead-end`) — lowest; re-touch only if nothing above remains. The loop runs to the round cap, so when higher-priority work is exhausted, prefer pulling in the judge's next-round candidate children over re-confirming a saturated node.
-   - A direction is **covered** once BOTH stances are `yes`. A `FAILED_NEEDS_RERUN` stance does NOT count toward covered — the direction stays open until that stance is re-run and passes.
-   - Assign this round's workers to the highest-priority items. Split stances evenly: half supportive, half adversarial. Multiple workers may share a direction with opposite stances. When the round's worker count exceeds the priority-1 and priority-2 items, fill remaining slots down the order.
-4. **Spawn ALL research workers for the round in ONE message** — one `Agent` call per worker, all in the same message, `subagent_type: research-worker`, foreground. The workers are independent (each owns its own direction, stance, and findings-file path), so the harness runs them in parallel. Use the spawn-prompt template below; the spawn prompt must state that the worker MUST write the findings file before returning (the file on disk is the only deliverable; a status line without a file is a failed run). The file-existence check in step 5 catches any worker whose file did not land — re-spawn just that worker.
-5. **Verify every findings file exists and is non-empty** before the judge. After all workers for the round have run, list `findings/round-<N>/` and confirm one non-empty `agent-K.md` per worker. For any that is missing or empty, re-spawn that worker (it overwrites its own path — idempotent). Only after every file is present, or a worker has genuinely failed twice, proceed. A worker's return text is NOT proof its file was written — check the file. Write a failure line to `log.md` for any worker that fails twice; never block the round on one genuinely-failed worker.
-6. **Write this round's `log.md` line** (round number, workers spawned, any failures) BEFORE spawning the judge — so you and the judge never write `log.md` concurrently.
-7. **Spawn ONE judge**, `subagent_type: research-judge`, foreground, with absolute paths to: this round's findings files, `evidence.md`, `synthesis.md`, `roadmap.md`, `ledger.md`, `log.md`, plus the goal and audience.
-8. **Handle judge failure.** Findings files survive on disk. Retry the judge once. If it fails twice, STOP and report — do not continue with no synthesis.
-9. **Update `state.md`** — refresh `rounds_without_new_directions` for the log (reset to 0 if the judge added any direction, else +1). It no longer stops the loop; keep it only as a record. Do NOT touch `round` here — it was already set in step 1 of this round.
-10. **Report the round to the user (REQUIRED — this is how they see it running).** After the judge returns, print ONE compact progress block to the user before starting the next round. Read it from the files the judge just wrote; do not make it up. It must show:
-    - `Round N/<cap> done.` and how many workers ran / failed.
-    - Worker scores this round (from `log.md`), e.g. `scores: 7,7,8,0(re-run),7`.
-    - Tree size: total directions, how many `covered`/`saturated`/`closed`, and how many NEW children the judge spawned this round (with their names) — this is the visible sign the tree is growing.
-    - Deepest depth reached so far.
-    - One line on what next round will work (the top-priority directions).
-    A run with no such output looks frozen to the user. Always print it.
-11. **Check the stop condition** (Step 4): if `round` has reached `round_cap`, exit to Step 5; otherwise loop to the next round.
-
-### Worker spawn-prompt template
-
-Each spawn prompt is self-contained. Fill every `<...>`:
-
-```
-Research goal: <goal>
-Audience for the final document: <audience>
-
-Your direction: <d-XXXXXX — direction name and one-line description>
-Your stance: <supportive | adversarial>
-
-Write your findings file to: <absolute path>/findings/round-<N>/agent-<K>.md
-Source files (read-only), if any: <absolute path>/sources/
-
-Follow your agent protocol exactly: structured findings file, observations
-separated from inferences, every observation sourced, contrary evidence
-recorded honestly, EVIDENCE LIMIT lines where you hit a ceiling. Return one
-line: the file you wrote and an observation count.
-```
+If the Workflow tool is not available in the session, ask the user to enable it (it needs an explicit opt-in), then run Step 3. The loop runs only through the workflow.
 
 ### How the user can watch a run (tell them this once, when the loop starts)
 
-A run can take many minutes per round. So the user never thinks it has frozen, tell them at the start how to watch it, and give the live per-round report (Step 3, item 10). From another terminal, in the working directory, the user can check progress directly:
-- `cat state.md` — current round, the cap, converged flag.
-- `tail -n 40 log.md` — the per-round lines, worker scores, and judge notes as they land.
-- `ls findings/round-*/` — how many findings files exist this round (the workers writing as they finish).
-- `grep -c '^## d-' roadmap.md` — how many directions the tree holds; re-run it across rounds and the number climbing is the tree growing.
-State that the run is alive as long as `log.md` is gaining lines and new `findings/round-N/` files appear; if neither changes for a long time, a worker or the judge has stalled.
+A run can take many minutes per round. So the user never thinks it has frozen, tell them at the start how to watch it. From another terminal, in the working directory, the user can check progress directly:
+- `cat state.md` for the current round and the cap.
+- `tail -n 40 log.md` for the per-round lines, worker scores, and Phase D notes as they appear.
+- `ls findings/round-*/` for how many findings files exist this round (the workers writing as they finish).
+- `grep -c '^## d-' roadmap.md` for how many directions the tree holds; re-run it across rounds and the number climbing is the tree growing.
+The run is alive as long as `log.md` is gaining lines and new `findings/round-N/` files appear; if neither changes for a long time, a worker or the synthesizer has stalled.
 
-## Step 4 — Stop condition
+## Step 4: Stop condition
 
-**The round cap is the only stop.** Run a round every iteration until `round` reaches `round_cap`, then stop and go to Step 5. There is no early "converged" exit: the loop does NOT stop because coverage looks complete or because a round added no new directions. The run explores for the full budget of rounds the user set, then stops. To make a run shorter or longer, set `round_cap` at intake — that number IS the run length.
+The round cap is the only stop. The workflow runs exactly `round_cap` rounds, then stops. There is no early exit: the loop does NOT stop because coverage looks complete or because a round added no new directions. The run explores for the full budget of rounds the user set. To make a run shorter or longer, set `round_cap` at intake; that number IS the run length.
 
-When the cap is reached, set `converged: true` in `state.md` (it marks "loop finished", not "topic exhausted") and proceed to the final brief.
-
-Coverage state and the judge's Phase D flags still matter — they drive *what* each round works on (priority order in Step 3, what the judge re-runs and adds). They simply no longer stop the loop. A round whose directions are all covered does not idle: the judge must branch (see Step 3 / the judge protocol) so the next round has deeper directions to pursue. `rounds_without_new_directions` is still tracked for the log, but it no longer triggers a stop.
+Coverage state and Phase D flags still matter: they drive *what* each round works on (the workflow's assignment priority, what it re-runs and which children it adds). They no longer stop the loop. A round whose directions are all covered does not idle; the synthesizer branches the tree so the next round has deeper directions to pursue.
 
 ## Step 5 — Final brief
 
@@ -221,7 +139,7 @@ your environment; e.g. run `echo "${CLAUDE_PLUGIN_ROOT}/assets/deck-kit.html"`)
 and write that literal path into the spawn prompt. Never pass the unexpanded
 `${CLAUDE_PLUGIN_ROOT}` string to the subagent — it cannot resolve it.
 
-Then spawn ONE `deck-builder` subagent, `subagent_type: deck-builder`, foreground. The spawn prompt is self-contained — the subagent starts with fresh context. Fill every `<...>` with a literal absolute path:
+Then spawn ONE `deck-builder` subagent, `subagent_type: deck-builder`. The spawn prompt is self-contained; the subagent starts with fresh context. Fill every `<...>` with a literal absolute path:
 
 ```
 Build a presentation deck from a finished deep-research run.
@@ -238,18 +156,18 @@ Deliverable files to consume (read all fully):
 - <working dir absolute path>/evidence.md
 - <working dir absolute path>/brief.md
 - <working dir absolute path>/roadmap.md
-- <working dir absolute path>/ledger.md
 - <working dir absolute path>/log.md
 
 Write the deck to: <working dir absolute path>/<deck file>
 
 Follow your agent protocol exactly: fill the frozen deck-kit (do not edit its
 design), build the deck from facts in those files, include the research-method
-slide built from roadmap.md / ledger.md / log.md, end with dense citation
-slides built from evidence.md, and self-check against the 11-item Deck Quality
-Bar before returning. If you cannot read the kit file, STOP and
-report it — do not design a deck of your own. Return one line: the file
-written, the slide count, and QB-check confirmation.
+slide built from roadmap.md and log.md (per-direction history pivoted from
+log.md's per-round scores), end with dense citation slides built from
+evidence.md, and self-check against the 11-item Deck Quality Bar before
+returning. If you cannot read the kit file, STOP and report it; do not design a
+deck of your own. Return one line: the file written, the slide count, and
+QB-check confirmation.
 ```
 
 The deck-builder does no research and no design — it fills a frozen kit with the finished deliverables, so every deck shares one visual language. For a deck variant (different density), spawn a fresh `deck-builder`; do not edit a deck in the main session.
@@ -260,7 +178,7 @@ The deck (Step 6) is slides; the memo is a prose document — a plain-English, f
 
 The memo design and the writing bar are fixed: the `memo-builder` agent fills a frozen kit (`${CLAUDE_PLUGIN_ROOT}/assets/memo-kit.html`) and renders the PDF with `${CLAUDE_PLUGIN_ROOT}/assets/make-pdf.mjs`. As in Step 6, resolve `${CLAUDE_PLUGIN_ROOT}` to its literal absolute path before spawning (run `echo "${CLAUDE_PLUGIN_ROOT}"`) and write literal paths into the spawn prompt — never pass the unexpanded variable.
 
-Then spawn ONE `memo-builder` subagent, `subagent_type: memo-builder`, foreground. Self-contained spawn prompt, fill every `<...>` with a literal absolute path:
+Then spawn ONE `memo-builder` subagent, `subagent_type: memo-builder`. Self-contained spawn prompt, fill every `<...>` with a literal absolute path:
 
 ```
 Build a cited written memo (and its PDF) from a finished deep-research run.

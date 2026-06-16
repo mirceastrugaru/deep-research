@@ -143,6 +143,23 @@ test('addOrReopenDirection adds a fresh direction', () => {
   assert.equal(r.dirs.at(-1).status, 'open');
 });
 
+test('the 15-cap never kills a direction that is a parent of a live child', () => {
+  // Reproduces the review bug: the cap killed any covered direction, orphaning
+  // its open child and corrupting the tree.
+  const r = seed(['seed']);
+  const parent = r.dirs[0];
+  parent.supportive = YES; parent.adversarial = YES; parent.status = 'covered';
+  // give it an open child
+  addOrReopenDirection(r, { name: 'open child', parent: parent.id });
+  // now flood past 15 with covered, childless directions so the cap fires
+  for (let i = 0; i < 16; i++) {
+    const d = addOrReopenDirection(r, { name: `filler ${i}` });
+    d.supportive = YES; d.adversarial = YES; d.status = 'covered';
+  }
+  // the parent must NOT be the victim — it has a live child
+  assert.equal(parent.status, 'covered', 'parent with a live child was spared');
+});
+
 test('re-proposing the same direction name across rounds does NOT duplicate it', () => {
   // Reproduces the e2e bug: the synthesizer proposed the same gap in round 1 and
   // round 2; salted IDs differed, so duplicates accumulated. Dedup by name fixes it.
