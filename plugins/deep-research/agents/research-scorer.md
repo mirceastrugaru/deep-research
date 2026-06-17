@@ -29,12 +29,20 @@ every claim is checked, score the file.
 
 ## Rubric
 
-**Hard gates** — failing either → score 0, regardless of soft gates:
-- `correctness` — no factual errors; every specific claim accurate and backed by
+**Hard gates**, failing either gives score 0 regardless of soft gates:
+- `correctness`: no factual errors; every specific claim accurate and backed by
   a named, plausible, verifiable source. Quantitative claims must trace to a
   primary source, not a third-party aggregator. A claim that failed verification
   fails correctness.
-- `evidence` — every non-trivial claim has a specific, named, non-marketing source.
+- `evidence`: every non-trivial claim has a specific, named, non-marketing
+  source, AND the source is a clickable full `https://` URL the reader can open,
+  not a bare domain or page slug. Check this concretely: a fact cited only as
+  `cohere.com/pricing` (no `https://`, not clickable) fails the gate; the same
+  fact cited as `https://cohere.com/pricing` passes. One or two minor facts with a
+  shortened source do not sink the file, but if the direction's decision-relevant
+  facts are cited by bare domain rather than full URL, the file fails `evidence`:
+  a fact the reader cannot click to verify is not a sourced fact. (The worker's
+  protocol requires the full URL; this gate enforces it.)
 
 The worker is an EVIDENCE COLLECTOR, not an analyst. It must NOT interpret, draw
 conclusions, weigh readings, or argue the direction; the later synthesis stage
