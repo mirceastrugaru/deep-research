@@ -1,7 +1,7 @@
 {
   "name": "deep-research",
   "description": "Multi-agent iterative research. A background Workflow spawns supportive and adversarial research workers in parallel each round, scores their findings, synthesizes a deliverable document and a citation catalog, and branches a tree of research directions until the round cap. Optionally builds a presentation deck or a cited written memo (PDF) from the finished research.",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "author": {
     "name": "Mircea"
   }
