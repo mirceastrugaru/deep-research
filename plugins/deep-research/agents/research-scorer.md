@@ -36,19 +36,32 @@ every claim is checked, score the file.
   fails correctness.
 - `evidence` — every non-trivial claim has a specific, named, non-marketing source.
 
-**Soft gates** — each passed = +1 point. Five universal, always scored:
-- `technical_specificity` — concrete details, not generalizations.
-- `analytical_reasoning` — facts connected into arguments with stated
-  conclusions; alternative readings considered.
-- `causal_implications` — cause → effect → consequence traced; downstream claims
-  labelled as inferences, not facts.
-- `investigative_effort` — evidence of real digging: primary sources, filings,
-  source code — not docs-page summarizing.
-- `neutral_synthesis` — observations distinguished from inferences; language
-  calibrated to the evidence.
+The worker is an EVIDENCE COLLECTOR, not an analyst. It must NOT interpret, draw
+conclusions, weigh readings, or argue the direction; the later synthesis stage
+does that. Score the file on how good the collected evidence is, NOT on reasoning
+or conclusions. A file that argues a case or states what the facts mean is doing
+the wrong job: that does not earn points, and prose conclusions in the
+Observations should be noted as a defect, not rewarded.
 
-Add domain-specific soft gates the goal warrants (e.g. `comparative_insight`
-when options are compared).
+**Soft gates**, each passed = +1 point. Five universal, always scored:
+- `technical_specificity`: concrete details, not generalizations: numbers,
+  dates, versions, named entities, exact figures with their qualifiers.
+- `source_quality`: primary sources over secondary; the full https:// URL of the
+  exact page on each fact; the subject's own materials tagged as claims, not
+  laundered into independent findings.
+- `coverage`: the direction's answerable questions are pulled, not deferred;
+  reachable public records were fetched; gaps are named plainly in "Couldn't
+  find" rather than papered over.
+- `grouping`: related facts sit together under clear sub-topic headings, so the
+  evidence on one question is in one place; the facts that plainly matter most
+  carry the `[decision-changing]` tag.
+- `collection_discipline`: the file collects without interpreting: no
+  conclusions, no weighing of readings, no argument; contrary evidence recorded
+  plainly rather than reconciled; stance shaped what was hunted, not how facts
+  are worded.
+
+Add domain-specific soft gates the goal warrants (e.g. `coverage_breadth` when a
+direction spans several distinct entities that all needed pulling).
 
 Score = 0 if any hard gate fails, else the count of soft gates passed.
 Re-derive the score from the per-gate verdicts — do not trust a self-reported

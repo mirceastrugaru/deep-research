@@ -315,10 +315,13 @@ Your stance: ${a.stance}
 Write your findings file to: ${path}
 ${cfg.sourcesDir ? `Source files (read-only): ${cfg.sourcesDir}` : ''}
 ${a.isRerun ? `\nNOTE: a prior attempt at this direction+stance FAILED source verification (claims that did not trace to their cited pages, or numbers taken from aggregators/blogs instead of primary sources). Do not repeat that. For every quantitative claim, open the primary source (the vendor's own docs, pricing page, model card, filing, or release note) and quote the figure from it; if a number lives only on an aggregator or a secondary blog, label it as such or drop it. A smaller set of fully-primary-sourced facts beats a long list that fails verification.\n` : ''}
-Follow your agent protocol exactly: research in passes, structured findings file,
-observations separated from inferences, every observation sourced, contrary
-evidence recorded honestly, EVIDENCE LIMIT lines where you hit a ceiling. You
-MUST write the findings file before returning — the file on disk is the only
+Follow your agent protocol exactly. You are an EVIDENCE COLLECTOR, not an
+analyst: collect, source, and group facts; do NOT interpret them, draw
+conclusions, or argue the direction (a later stage does that). Research in
+passes, write a structured findings file of facts only, grouped under sub-topic
+headings, every fact carrying the full https:// URL of its source, contrary
+evidence recorded plainly, EVIDENCE LIMIT lines where you hit a ceiling. You MUST
+write the findings file before returning; the file on disk is the only
 deliverable. Then return the structured summary: the file path you wrote, the
 observation count, whether the file is on disk, and any new directions you
 spotted outside your own (name + one-line reason each).`
