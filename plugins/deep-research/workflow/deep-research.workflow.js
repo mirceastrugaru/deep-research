@@ -473,6 +473,10 @@ const NS = cfg.agentPrefix === undefined ? 'deep-research:' : cfg.agentPrefix
 const WORKER = cfg.workerAgent || NS + 'research-worker'
 const SCORER = cfg.scorerAgent || 'general-purpose'
 const SYNTHESIZER = cfg.synthesizerAgent || 'general-purpose'
+// Optional per-run model overrides. When set, force the model at the agent()
+// call regardless of the agent definition's frontmatter (useful for cost/latency
+// tuning, e.g. workerModel: 'haiku', without editing or reinstalling the plugin).
+const workerOpts = cfg.workerModel ? { model: cfg.workerModel } : {}
 
 const roadmap = loadRoadmap(cfg.directions || [])
 const dirName = (id) => (findDir(roadmap, id) || {}).name || id
@@ -494,7 +498,7 @@ while (round < cfg.roundCap) {
   const findings = (await parallel(assignments.map((a) => () =>
     agent(workerPrompt(cfg, a, round, dirName(a.dirId), dirNote(a.dirId)), {
       label: `research:${a.dirId}:${a.stance}`, phase: 'Research',
-      agentType: WORKER, schema: FINDINGS_SCHEMA,
+      agentType: WORKER, schema: FINDINGS_SCHEMA, ...workerOpts,
     }).then((r) => ({ ...a, ...r }))
   ))).filter(Boolean)
 
