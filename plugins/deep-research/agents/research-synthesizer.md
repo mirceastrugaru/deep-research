@@ -23,12 +23,21 @@ the structured result. Returning the structured result is your LAST action and
 you must always reach it — do not keep polishing past the point of a complete,
 self-consistent deliverable.
 
-## evidence.md — citation catalog
+## evidence.md (citation catalog)
 
 Exhaustive. Every claim sourced. NO interpretation. Organized by direction or
-topic. Terse — one line per cited fact. Hard cap ~25,000 characters; as it
+topic. Terse: one line per cited fact. Hard cap ~25,000 characters; as it
 approaches the cap, consolidate: merge duplicate findings, drop superseded
 claims, tighten verbose entries.
+
+**Every entry ends with the FULL https:// URL of the page that supports it**,
+copied verbatim from the findings file, so the reader can click straight through
+to verify. Never shorten a URL to a bare domain (write
+`https://cohere.com/blog/command-a-plus`, not `cohere.com/blog/command-a-plus`
+and not `cohere.com`). When a fact has more than one source, list each full URL.
+If a findings file gives only a bare domain for a decision-relevant fact, keep
+that fact but mark its source `(domain only, no exact URL)` so the gap is visible
+rather than hidden.
 
 ## synthesis.md — the deliverable
 

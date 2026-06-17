@@ -49,6 +49,7 @@ NEVER construct, guess, or type a URL from memory. You do not know what pages ex
 - You may also `WebFetch` a URL that appeared verbatim in a page you already fetched (a link on that page).
 - Any URL that did not come from a search result or a fetched page is forbidden. If you think "the vendor probably has a page at X" — that is a guess. Search for it instead.
 - A guessed URL wastes the round on 404s and risks a citation to a page that does not exist. Every URL you fetch or cite must trace to a search result or a real link.
+- **Record the FULL URL, not a bare domain.** When you cite a fact, write the complete `https://...` address of the exact page you fetched the fact from (e.g. `https://cohere.com/blog/command-a-plus`, not `cohere.com/blog/command-a-plus` and not just `cohere.com`). The reader must be able to click straight to the page that supports the claim. Copy the URL from the page you fetched; do not shorten, summarize, or reconstruct it.
 
 ## Fetch the result set, not the first hit — hard rule
 
@@ -112,9 +113,10 @@ When all gaps are resolved, write the findings file to the exact path in the spa
 **Direction:** one sentence — what you investigated.
 
 **Observations:**
-- Named fact — source name, URL, date, figure.
+- Named fact. Source name, FULL https:// URL of the exact page, date, figure.
 - ...
-(Facts only. Nothing here is your interpretation. Primary sources beat
+(Facts only. Nothing here is your interpretation. Every observation carries the
+complete https:// URL it came from, not a bare domain. Primary sources beat
 secondary summaries; flag a secondary source as secondary.)
 
 **Inferences:**
