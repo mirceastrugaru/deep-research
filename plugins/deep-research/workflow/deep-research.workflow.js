@@ -344,15 +344,31 @@ the URLs the worker cited — do NOT research the topic yourself or chase leads 
 worker did not raise. While a source is open, note context-stripping (context the
 source gives that the claim omits and that changes its meaning).
 
+The worker is an EVIDENCE COLLECTOR, not an analyst. It must NOT interpret, draw
+conclusions, weigh readings, or argue the direction; a later stage does that.
+Score the file on how good the COLLECTED EVIDENCE is, not on reasoning. A file
+that argues a case or states what the facts mean is doing the wrong job: do not
+reward it, and note prose conclusions as a defect.
+
 THEN SCORE against this rubric:
 - Hard gates (failing either -> score 0): correctness (no factual errors; every
   specific claim accurate and backed by a named verifiable source; quantitative
   claims trace to a primary source, not an aggregator; a claim that failed
-  verification fails correctness), evidence (every non-trivial claim has a
-  specific, named, non-marketing source).
-- Soft gates (+1 each): technical_specificity, analytical_reasoning,
-  causal_implications, investigative_effort, neutral_synthesis, plus any
-  domain-specific gate the goal warrants (e.g. comparative_insight).
+  verification fails correctness); evidence (every non-trivial claim has a
+  specific, named, non-marketing source, AND the source is a clickable full
+  https:// URL, not a bare domain or page slug. A fact cited only as
+  "cohere.com/pricing" fails; "https://cohere.com/pricing" passes. One or two
+  minor shortened sources do not sink the file, but if the direction's
+  decision-relevant facts are cited by bare domain rather than full URL, fail
+  evidence: a fact the reader cannot click to verify is not a sourced fact).
+- Soft gates (+1 each): technical_specificity (concrete numbers, dates, versions,
+  named entities with their qualifiers); source_quality (primary over secondary;
+  full URLs; subject's own materials tagged as claims, not laundered); coverage
+  (the answerable questions pulled, gaps named honestly in Couldn't-find);
+  grouping (related facts under sub-topic headings; facts that matter most tagged
+  [decision-changing]); collection_discipline (collects without interpreting; no
+  conclusions or arguments; contrary evidence recorded plainly). Plus any
+  domain-specific gate the goal warrants.
 Score = 0 if any hard gate fails, else the count of soft gates passed. Re-derive
 the score from the per-gate verdicts.
 
@@ -372,6 +388,13 @@ exactly TWO files — synthesis.md and evidence.md — and nothing else. Do NOT
 write, read, or curate roadmap.md; the workflow owns it. Do NOT
 fetch any sources; every claim here was already verified. This is writing only.
 
+The findings files are FACTS ONLY: the workers collect, source, and group
+evidence; they do not interpret it. You are the ONLY place interpretation
+happens. Every conclusion, every weighing of one reading against another, every
+"what this means for the reader" is yours to make, from the full pool of verified
+facts across all the findings files (not from any single worker's slice). Read
+the facts, then interpret them.
+
 Research goal: ${cfg.goal}
 Audience for the final document: ${cfg.audience}
 
@@ -390,7 +413,12 @@ a deliverable that is already complete and self-consistent.
 
 - evidence.md: exhaustive citation catalog, one line per cited fact, no
   interpretation, organized by direction/topic, hard cap ~25,000 characters,
-  consolidate as you approach it.
+  consolidate as you approach it. Every entry ends with the FULL https:// URL of
+  the page that supports it, copied verbatim from the findings file, so the reader
+  can click straight through to verify. Never shorten a URL to a bare domain
+  (write https://cohere.com/blog/x, not cohere.com/blog/x). If a findings file
+  gives only a bare domain for a decision-relevant fact, keep the fact but mark
+  its source "(domain only, no exact URL)" so the gap is visible, not hidden.
 - synthesis.md: the deliverable a human reads. Orient the reader in 2-3
   sentences (what the topic is, why they are reading this, what it covers). No
   process exhaust — never mention rounds, workers, judge, scorer, or stances. No
@@ -401,15 +429,21 @@ a deliverable that is already complete and self-consistent.
   do not manufacture balance. Lead with the most decision-relevant finding. Target
   ~2000-2500 words, soft cap. A claim that failed verification does not enter.
 
-PHASE D — after writing synthesis.md, read it whole and check: recency (is each
-load-bearing fact still current), internal consistency (no claim contradicts
+PHASE D — after writing synthesis.md, read it whole and check FIVE things:
+recency (is each fact still current), internal consistency (no claim contradicts
 another — fix in text where you can), material omissions / reachable facts
 wrongly deferred (a label like estimate/unverified/data-room-only that a quick
-public lookup could pin), and over-narrow framing (a conclusion stronger than the
-evidence, or a qualifier that buries a near-match). Fix what you can in prose. For
-each UNRESOLVED flag, do not leave it as prose alone — return it in phaseDFlags
-with the specific direction that would close it (closesWith: name + note, plus
-reopenId if an existing direction should be re-opened).
+public lookup could pin), over-narrow framing (a conclusion stronger than the
+evidence, or a qualifier that buries a near-match), and THE SPINE TEST (the most
+important): name the single claim the document's central conclusion rests on; is
+it a verified fact or an inference chain? If the conclusion stands on an
+unverified inference, that is a spine flag, however complete coverage looks; also
+flag the spine if no worker this run attacked the central claim itself and only
+peripheral directions were investigated. Fix what you can in prose. For each
+UNRESOLVED flag, do not leave it as prose alone — return it in phaseDFlags
+(kind one of: recency, contradiction, reachable_fact, omission, spine) with the
+specific direction that would close it (closesWith: name + note, plus reopenId if
+an existing direction should be re-opened).
 
 Existing research directions (id: name). When you propose a child direction in
 newDirections or a closesWith, set its \`parent\` to the EXACT \`d-\` id from this
