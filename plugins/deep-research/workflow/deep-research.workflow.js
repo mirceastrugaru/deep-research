@@ -474,8 +474,14 @@ const WORKER = cfg.workerAgent || NS + 'research-worker'
 const SCORER = cfg.scorerAgent || 'general-purpose'
 const SYNTHESIZER = cfg.synthesizerAgent || 'general-purpose'
 // Optional per-run model overrides. When set, force the model at the agent()
-// call regardless of the agent definition's frontmatter (useful for cost/latency
-// tuning, e.g. workerModel: 'haiku', without editing or reinstalling the plugin).
+// call regardless of the agent definition's frontmatter, without editing or
+// reinstalling the plugin.
+// FINDING (tested 2026-06): workerModel:'haiku' fails. On an identical
+// well-sourced topic, Sonnet workers scored [6,0,0,0] round 1 while Haiku scored
+// [0,0,0,0] (all hard-failed verification, empty 158-word deliverable), and
+// Haiku's input tokens were ~the same as Sonnet's (cost is fetched-page volume,
+// not the model), so the failures would re-run and cost MORE. Keep workers on
+// Sonnet. This override stays for deliberate per-run tuning, not as a default.
 const workerOpts = cfg.workerModel ? { model: cfg.workerModel } : {}
 
 const roadmap = loadRoadmap(cfg.directions || [])
