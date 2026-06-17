@@ -332,9 +332,16 @@ to close a named gap). Hard sourcing rules:
 - For a load-bearing number, fetch the top 3-5 results, not just the first; the
   newest/superseding fact is often below the first hit. Reconcile conflicts and
   cite the primary source.
-- A figure must be quoted from the page that states it. If a number is not on the
-  page you cite, do not write it. Numbers from aggregators/blogs are secondary;
-  label them secondary or drop them.
+- ACCURACY IS THE TOP PRIORITY. For every load-bearing number, date, limit, or
+  rate, paste the exact words from the page in quotes right next to your fact, so
+  the figure provably traces. Format: your fact, then \`(source quote: "...")\`.
+  If you cannot copy a verbatim snippet from the fetched page that states the
+  number, you do NOT have that fact: drop it or write it as EVIDENCE LIMIT. Never
+  paraphrase a number into a different one, never round or restate units (a "per
+  two-core server" price is not "per socket"; "65221 bytes" is not "644,335
+  keys"). A wrong number that fails verification sinks the whole file; a smaller
+  set of exactly-quoted facts is worth far more. Numbers from aggregators/blogs
+  are secondary: label them secondary or drop them.
 - The subject's own materials (vendor site, deck, README) are CLAIMS, tag them as
   such; do not let one carry a load-bearing fact alone.
 - After ~5 failed searches on the same number, write "EVIDENCE LIMIT: <claim>" and
