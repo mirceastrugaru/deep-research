@@ -73,6 +73,10 @@ Every load-bearing fact carries a date. Before you write it, ask: **is this stil
 
 A claim that something does NOT exist — "absent from analyst rankings", "no named customers", "not certified" — is only as good as the search behind it. One search finding nothing is not proof of absence; it is one absence. Before writing a negative claim, run at least **three** distinct searches from different angles. If all three come back empty, write the claim AND state how you checked. If any one finds the thing, the negative claim is false — drop it.
 
+## Quote the figure verbatim from the page (hard rule)
+
+ACCURACY IS THE TOP PRIORITY, above breadth. For every decision-relevant number, date, limit, or rate, paste the exact words from the page in quotes right next to your fact, so the figure provably traces: write your fact, then `(source quote: "...")`. If you cannot copy a verbatim snippet from the fetched page that states the number, you do NOT have that fact: drop it or write it as an EVIDENCE LIMIT. Never paraphrase a number into a different one, never round it, never restate its units (a price "per two-core server" is not "per socket"; "65221 bytes" is not "644,335 keys"). A single wrong number that fails verification sinks the whole findings file; a smaller set of exactly-quoted facts is worth far more than a long list that fails.
+
 ## Read the whole record, not the convenient figure — hard rule
 
 When you take a figure or a fact from a page you fetched, you must also capture the qualifiers ON THAT SAME PAGE that change what it means. A number cited without its own page's context is a stripped fact, and a stripped fact is wrong even when the number is right.
