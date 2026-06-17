@@ -315,13 +315,47 @@ Your stance: ${a.stance}
 Write your findings file to: ${path}
 ${cfg.sourcesDir ? `Source files (read-only): ${cfg.sourcesDir}` : ''}
 ${a.isRerun ? `\nNOTE: a prior attempt at this direction+stance FAILED source verification (claims that did not trace to their cited pages, or numbers taken from aggregators/blogs instead of primary sources). Do not repeat that. For every quantitative claim, open the primary source (the vendor's own docs, pricing page, model card, filing, or release note) and quote the figure from it; if a number lives only on an aggregator or a secondary blog, label it as such or drop it. A smaller set of fully-primary-sourced facts beats a long list that fails verification.\n` : ''}
-Follow your agent protocol exactly. You are an EVIDENCE COLLECTOR, not an
-analyst: collect, source, and group facts; do NOT interpret them, draw
-conclusions, or argue the direction (a later stage does that). Research in
-passes, write a structured findings file of facts only, grouped under sub-topic
-headings, every fact carrying the full https:// URL of its source, contrary
-evidence recorded plainly, EVIDENCE LIMIT lines where you hit a ceiling. You MUST
-write the findings file before returning; the file on disk is the only
+You are an EVIDENCE COLLECTOR, not an analyst. Your job is to find facts, source
+them, and group them. You do NOT interpret, draw conclusions, weigh one reading
+against another, or argue the direction; a later stage does all of that. If you
+mix interpretation in, you bias the collection toward what you already concluded.
+There is NO "Inferences" section in your output and no prose that says what the
+evidence MEANS. Stance (supportive/adversarial) sets which evidence you HUNT for
+(confirming vs disconfirming), not what you conclude; a fact is worded the same
+whichever stance found it.
+
+Method: work in passes (search, then sort facts from open gaps, then search only
+to close a named gap). Hard sourcing rules:
+- NEVER guess or construct a URL. Reach a page via WebSearch, then WebFetch a URL
+  from those results. Every fact carries the FULL https:// URL of the exact page
+  it came from, copied from the page, never a bare domain.
+- For a load-bearing number, fetch the top 3-5 results, not just the first; the
+  newest/superseding fact is often below the first hit. Reconcile conflicts and
+  cite the primary source.
+- A figure must be quoted from the page that states it. If a number is not on the
+  page you cite, do not write it. Numbers from aggregators/blogs are secondary;
+  label them secondary or drop them.
+- The subject's own materials (vendor site, deck, README) are CLAIMS, tag them as
+  such; do not let one carry a load-bearing fact alone.
+- After ~5 failed searches on the same number, write "EVIDENCE LIMIT: <claim>" and
+  move on. Never fabricate.
+
+Write the findings file in EXACTLY this structure (no other sections):
+
+**Direction:** one sentence: what you investigated.
+
+**Observations:**
+Group facts under short "### Sub-topic" headings so related evidence sits
+together. Under each heading, one fact per line:
+- Named fact. Source name, FULL https:// URL of the exact page, date, figure. [decision-changing] if it plainly matters more than its neighbours.
+
+**Couldn't find:**
+- What you sought, how many sources, why it failed. EVIDENCE LIMIT lines here.
+
+**New directions:**
+- <sub-topic>: parent ${a.dirId}. Reason: one line.
+
+You MUST write the findings file before returning; the file on disk is the only
 deliverable. Then return the structured summary: the file path you wrote, the
 observation count, whether the file is on disk, and any new directions you
 spotted outside your own (name + one-line reason each).`
@@ -504,7 +538,7 @@ cfg.workerCount = cfg.workerCount || 4
 // this avoids depending on the custom agents being registered in the current
 // session. Override any of these via cfg if you have the custom agents installed.
 const NS = cfg.agentPrefix === undefined ? 'deep-research:' : cfg.agentPrefix
-const WORKER = cfg.workerAgent || NS + 'research-worker'
+const WORKER = cfg.workerAgent || 'general-purpose'
 const SCORER = cfg.scorerAgent || 'general-purpose'
 const SYNTHESIZER = cfg.synthesizerAgent || 'general-purpose'
 // Optional per-run model overrides. When set, force the model at the agent()
@@ -516,7 +550,9 @@ const SYNTHESIZER = cfg.synthesizerAgent || 'general-purpose'
 // Haiku's input tokens were ~the same as Sonnet's (cost is fetched-page volume,
 // not the model), so the failures would re-run and cost MORE. Keep workers on
 // Sonnet. This override stays for deliberate per-run tuning, not as a default.
-const workerOpts = cfg.workerModel ? { model: cfg.workerModel } : {}
+// Default workers to Sonnet (right tier for fact-collection; Haiku tested worse,
+// see finding above). Override per-run with cfg.workerModel.
+const workerOpts = { model: cfg.workerModel || 'sonnet' }
 
 const roadmap = loadRoadmap(cfg.directions || [])
 const dirName = (id) => (findDir(roadmap, id) || {}).name || id
